@@ -41,7 +41,7 @@ The reviewed inventory holds about 40 records. Roughly a third are compute, mobi
 |---|---|---|---|---|
 | **AI orchestrator** (Seravo-0) | Dell Precision laptop, run headless `[REDACTED: model, specs]` | Linux | Runs the local LLM, the chat front end, the vault and ingest services, the scheduled jobs and the sandbox. Decides, dispatches and records. | **Active** |
 | **Edge scout / operator console** | Dell Precision laptop on a Dell USB-C dock `[REDACTED: model]` | Linux | The operator's day-to-day console. Hosts the Ingress drop folder, a status HUD and the template for new clients. Acts as a mesh subnet router and exit point. | **Active**, remote shell access to it still being fixed |
-| **Windows hub and mirror-port relay** | Windows laptop `[REDACTED: vendor and model]` | Windows | Relays the switch mirror port's neighbour data to the vault and stands in as the controller relay. Also serves as an archive target and mesh exit point. | **Active, degraded**: remote key authorisation is blocked and latency was seen on the relay path |
+| **Windows hub and mirror-port relay** | Windows laptop `[REDACTED: vendor and model]` | Windows | Relays the switch mirror port's neighbour data to the vault and stands in as the controller relay. Also serves as an archive target and mesh exit point, and runs an edge telemetry agent that reports its own health. | **Active, degraded**: remote key authorisation is blocked and latency was seen on the relay path |
 | **Mobile Linux medic client** | Linux laptop with an NVIDIA GPU, travels `[REDACTED: model]` | Linux | Sends telemetry to the orchestrator every five minutes and runs a local watchdog. Restricted by policy: it can report and query but cannot start SSH sessions. | **Active** |
 | **Windows fleet node** | Windows PC `[REDACTED: model]` | Windows | General fleet member, woken on demand. | **Active, degraded**: offline at last audit, identity record conflicted |
 | **Field gateway (stealth portal)** | Small Linux box | Debian | Subnet router for a remote or travelling LAN. | **Planned / unverified**: in the design roster, not seen in recent audits |
@@ -65,7 +65,8 @@ The reviewed inventory holds about 40 records. Roughly a third are compute, mobi
 | Function | Hardware class | What it does | Status |
 |---|---|---|---|
 | **Mobile approvers** (phone and tablet) | Android phone and Samsung Galaxy tablet | Approve or deny AI actions, approve new mesh routes, and wake or reboot a client in the field. | **Active** (phone); the tablet shows as offline at times |
-| **Limited watch client** | Smartwatch | Read-only status and limited sync. | **Active in policy**, light use |
+| **Tablet dashboard** | Samsung Galaxy tablet | Secondary approver, also used as a status dashboard display. | **Active**, intermittent |
+| **Limited watch client** | Smartwatch | Wrist-worn, glanceable network state and read-only status. | **Active in policy**, light use |
 | **Mobile quarantine buffer** | Retired Samsung Galaxy phone | A scanning and landing drive. Files arrive, get virus-scanned, and pass on to the orchestrator for review. | **Planned** |
 
 ## Memory and archive
@@ -78,7 +79,17 @@ The reviewed inventory holds about 40 records. Roughly a third are compute, mobi
 | **Credential vault** | Dedicated drive or host | Recovers a wiped client and reissues its identity. | **Planned** |
 
 ## IoT and sandbox devices
-Security floodlights and cameras, smart plugs, an Emerson Sensi thermostat, a Legrand home-automation gateway, Google Nest smart speakers, a TV and a printer live on isolated segments, served by the TP-Link access points. They are observed, not trusted, and the orchestrator watches how they behave. Work in progress here includes onboarding problems on one segment, and a TV with no internet that needs a fix in the controller's web interface.
+Security floodlights and cameras, smart plugs, an Emerson Sensi thermostat, a Legrand home-automation gateway, Google Nest smart speakers, a TV and a printer live on isolated segments, served by the TP-Link access points. Streaming boxes and sticks (Roku and Fire TV class) sit on the household segment, not the IoT one. None of these can join the mesh overlay, so the orchestrator watches them from the network side. They are observed, not trusted.
+
+| Device class | What is watched or managed |
+|---|---|
+| Home-automation gateway | Treated as critical. The IoT guard measures how long it takes to rejoin after a power failure. |
+| Thermostat | Held on a fixed address reservation so its lease does not shuffle. |
+| Floodlights and cameras | The signal optimiser keeps them from clinging to a distant access point. |
+| Streaming boxes, TV, speakers, printer | Presence and join events only. |
+| All of the above | Long DHCP leases on the IoT segment `[REDACTED: lease policy]`, and link-local dropouts caught by the IoT guard. |
+
+Hardware identities, addresses and segment IDs `[REDACTED]`. Work in progress here includes onboarding problems on one segment, and a TV with no internet that needs a fix in the controller's web interface.
 
 ## How the clients interact
 
