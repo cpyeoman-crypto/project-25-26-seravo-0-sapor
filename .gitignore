@@ -1,0 +1,7 @@
+# keep structure, ignore real archive content
+archive/*.md
+archive/transcripts/*.jsonl
+!archive/.gitkeep
+!archive/transcripts/.gitkeep
+.env
+*.key
