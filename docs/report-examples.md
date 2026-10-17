@@ -89,6 +89,38 @@ First seen on the switch mirror port. Not in the reviewed inventory.
 - **Infrastructure uptime** `gateway up, switch up, access points up`
 ```
 
+### Mesh node connected from outside
+**Priority** 3
+
+```
+## 🟢 TAILSCALE CONNECT
+
+[Tailscale Connect] Name: client-a | IP: [REDACTED mesh address] | VLAN: N/A
+
+- **Path** `[REDACTED: direct or relay]`
+```
+
+### Autosync blocked a script
+**Priority** 4
+
+```
+## 🚫 SYNC BLOCKED
+
+- ❌ `[script]` contains what looks like a credential and was stopped before syncing
+- ✅ other changes synced to [n] clients
+```
+
+### Hardware attention (from a collector)
+**Priority** 4
+
+```
+## 🌡️ HARDWARE ATTENTION · client-b
+
+- 💽 Disk ▰▰▰▰▰▰▰▰▰▱ **91%**
+- 🎮 GPU driver not active
+- ⚙️ **[n]** failed systemd units
+```
+
 ### Online but not reporting
 **Priority** 3
 
