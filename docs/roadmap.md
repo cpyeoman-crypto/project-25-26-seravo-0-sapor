@@ -11,7 +11,7 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 - **IoT onboarding:** fixing join problems on one segment.
 
 ## Further integrations (idea stage)
-Details in [future-integrations.md](future-integrations.md): a second LLM (Seravo-1), voice and speech-to-text, home-automation control, media capability, a weather station, and solar and utilities monitoring.
+Details in [future-integrations.md](future-integrations.md): a second LLM (Seravo-1), voice and speech-to-text, home-automation control, media capability, a weather station, LiDAR presence sensing, solar and utilities monitoring, and wider IoT plans (onboarding checklist, behaviour baselines, lifecycle tracking, quarantine).
 
 ## Planned clients
 - **Edge enforcer in line:** a Dell OptiPlex micro-PC (candidate) with dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy, mirror telemetry, a fail-closed bypass cable and audible alarms.

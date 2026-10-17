@@ -22,6 +22,7 @@ flowchart LR
     S0 --> HA["Home automation<br/>(planned)"]
     Media["Media services<br/>(planned)"] --> S0
     Weather["Weather station<br/>(planned)"] --> HA
+    Lidar["LiDAR presence sensing<br/>(planned)"] --> HA
     Solar["Solar, storage, utilities<br/>(planned)"] --> HA
     HA --> Phone["Approver phone<br/>(ntfy)"]
     S0 --> Phone
@@ -70,6 +71,31 @@ The author workspace and the other nodes would sit under one identity and access
 - **Fit.** The hub sits on its own isolated segment. Seravo-0 first watches it (is it up, are its devices joining and rejoining). Control by the AI is a later step with a short list of allowed actions and human approval for anything consequential.
 - **Likely first uses.** Scenes and schedules, alerts that combine network and device state, and a status view on a wall or tablet display.
 - **Open.** Which devices are controllable, which protocols, and what the AI may do without asking.
+
+## LiDAR
+
+I have read "lindar" as LiDAR (laser ranging). If you meant something else, tell me and I will change this section.
+
+- **What.** LiDAR sensors that measure distance and shape instead of recording images. Likely uses: presence and movement sensing for doors, yards and halls, room occupancy for home automation, and mapping a space.
+- **Why LiDAR rather than cameras.** It tells the system that something is there and where it is, without keeping anyone's picture. That fits the project's privacy stance.
+- **Fit.** Sensors sit on the isolated IoT segment and report to the local home-automation hub. Seravo-0 watches them like any other IoT device (present, rejoined, silent) and treats a sensor that goes quiet as an alert in its own right. Events such as "motion at the gate at night" arrive as state-change pushes.
+- **Safety and privacy.** Data stays local, and aiming is limited to the household's own property. A physical-security alert is information for a person, not a trigger for automatic action.
+- **Open.** Sensor type and mounting, how it connects, and which events deserve a push.
+
+## Future IoT aspirations
+
+The IoT segment today holds lights, cameras, plugs, a thermostat, a home-automation gateway, speakers, a TV and a printer. The aim is to grow it without growing the risk.
+
+| Aspiration | What it means |
+|---|---|
+| **More sensors, same rules** | Weather, power, LiDAR presence and similar sensors join the isolated segment, and each one is watched for joins, drops and silence. |
+| **Device onboarding checklist** | A new device gets a role, a fixed address reservation where needed, and a place in the reviewed inventory before it is trusted with anything. Unknown devices still raise an alert. |
+| **Local-only by default** | Devices that work without a cloud account are preferred. Those that need the internet are limited to what they must reach. |
+| **Per-device behaviour baselines** | The IoT guard learns what normal looks like for each device (how long it takes to rejoin, how often it chatters) and flags drift. |
+| **Health and lifecycle** | Firmware age, battery level and last-seen time are tracked, with a push when a device needs attention. |
+| **Power-aware devices** | Where safe, devices respond to the solar and utilities state (see below). |
+| **Quarantine and containment** | A misbehaving device can be moved to a stricter segment, after a person approves. The honeypot and quarantine playbooks on the [roadmap](roadmap.md) cover the practice runs. |
+| **Open standards** | Prefer devices that speak open local protocols over closed ones, so the hub does not depend on one vendor. |
 
 ## Media
 
