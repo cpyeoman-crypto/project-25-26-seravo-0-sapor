@@ -6,21 +6,29 @@ A private mesh network design with an AI at its centre. Seravo-0 is the intended
 
 **Public implementation boundary.** The runnable [starter kit](starter-kit/README.md) provides fleet probes, heartbeat files, optional ntfy delivery, opt-in Wake-on-LAN and a read-only local project/evidence checker. The broader architecture and historical role/status descriptions below are not current deployment evidence. Installing files does not enable timers, provide external connectors or prove that any live service is healthy. See [project maintenance](docs/monitoring-and-protection.md#local-project-maintenance) for fresh evidence requirements.
 
-That question belongs to the network and to the novel it grows beside. A 20-year-old sci-fi/fantasy novel is being revived, and its world-building shares a home with the technical build. The two run on separate machines, so the creative work never touches the security work. Story details are deliberately kept out of this repository.
+### Key scope of this implementation
+
+- **Evidence-based active project monitoring:** [project_monitor.py](starter-kit/src/project_monitor.py) checks local file fingerprints, reviewed Markdown hashes and manually supplied check/connector evidence. [daily_status.py](starter-kit/src/daily_status.py) reports project health, last successful check, pending/failed checks, documentation review needs and connector prerequisites. Missing, stale or invalid evidence means attention, never `ALL GREEN`.
+- **Recurring completion conditions:** every fix or addition must assess affected docs, report conditions, upstream/downstream connector compatibility, privacy masking and actual test results before publishing. Record genuine outcomes against the current fingerprint; follow the [repository checklist](#repository-maintenance-conditions) and [evidence contract](docs/monitoring-and-protection.md#required-evidence-and-status). The monitor does not run tests or make repairs from ingested content.
+- **Connector lifecycle:** distinguish **planned / blocked / implemented / verified** using the [maintenance policy example](starter-kit/config/maintenance.example.json) and explicit prerequisites. Implementation is not verification. Rave remains planned and disabled: no verified interface or publishing connector was found; [interface, authentication, privacy and approval gates](docs/monitoring-and-protection.md#connectors-and-rave) remain outstanding.
+- **Public privacy and script guidance:** identifying examples use non-operational x-placeholders such as `x.x.x.x`, `xx:xx:xx:xx:xx:xx` and `x-host`; replace them only in private runtime configuration. Validation rejects configured placeholders before traffic. Functional loopback/bind addresses and protocol values remain meaningful constants. [SCRIPT_GUIDE.txt](starter-kit/SCRIPT_GUIDE.txt) explains each script's blocks, inputs/outputs, side effects and prerequisites.
+- **Operation, not deployment:** the [hourly project timer](starter-kit/systemd/fleet-project.timer) and [daily timer](starter-kit/systemd/fleet-daily.timer) are supplied but not enabled by this PR. Monitoring recurs only after operator configuration and manual activation; evidence still needs genuine refresh. No local services, private fleet deployment or Rave publishing are installed or verified by this PR.
+
+That question belongs to the network and to the novel it grows beside. A 20-year-old sci-fi/fantasy novel is being revived, and its world-building shares a home with the technical build. Creative work must stay separate from security work, on separate machines; this repository does not verify that deployment boundary. Story details are deliberately kept out of this repository.
 
 ## Why it exists
 
-The network spans more than one building: trusted compute machines, isolated smart-home segments, and remote or travelling field gear, all joined by an encrypted overlay. Passive monitoring was not enough, and nobody wanted to be the one checking it. The project set out to build an orchestrator that patrols the physical network layer and the overlay together, and then repairs small things itself. The creative framework of the novel and the technical need for a guardian grew up together `[REDACTED: story context]`.
+The broader network design spans more than one building: trusted compute machines, isolated smart-home segments, and remote or travelling field gear, joined by an encrypted overlay. Passive monitoring was not enough, and nobody wanted to be the one checking it. The project set out to build an orchestrator that patrols the physical network layer and the overlay together, and then repairs small things itself. The creative framework of the novel and the technical need for a guardian grew up together `[REDACTED: story context]`.
 
-It started as ping-sweep scripts. The broader design uses one central, reviewed repository as its source of truth: change watching with segment-aware alerts, self-healing loops, scheduled reports to the operator's phone, and sync of reviewed scripts and prompts to adopted clients. Those private-system capabilities and any historical credential cleanup are not verified by this public repository. Real credentials belong outside tracked files.
+It started as ping-sweep scripts. The broader design calls for one central, reviewed repository as its source of truth: change watching with segment-aware alerts, self-healing loops, scheduled reports to the operator's phone, and sync of reviewed scripts and prompts to adopted clients. Those private-system capabilities are not verified by this public repository. Real credentials belong outside tracked files; this PR makes no claim that credential history has been scrubbed.
 
-The assistants cooperate under a written protocol: cloud assistants design and draft, the local orchestrator decides what runs, and a local repair model makes small bounded fixes. They pass work using absolute paths, minified JSON and named roles, so no agent has to guess what another meant. A person still approves anything consequential. See [docs/ai-team.md](docs/ai-team.md).
+The intended assistant protocol assigns design and drafting to cloud assistants, dispatch to the local orchestrator, and small bounded fixes to a local repair model. It specifies absolute paths, minified JSON and named roles for handoffs. These are architecture rules, not shipped AI dispatch or repair services. A person must still approve anything consequential. See [docs/ai-team.md](docs/ai-team.md).
 
 ## The idea in one minute
 
 Most home and small-site networks are watched by nobody. Devices join, firmware ages, cheap IoT gadgets talk to the internet, and problems show up only after something breaks.
 
-This project puts a small team of machines on the job, each known here by its function:
+The target architecture assigns a small team of machines these functions:
 
 1. A **central brain** reads telemetry and logs and reasons about them with a local LLM.
 2. **Scouts** at the edge report in and show a local view.
@@ -28,11 +36,13 @@ This project puts a small team of machines on the job, each known here by its fu
 4. An **archivist** keeps the long-term record.
 5. **A person**, on a phone, says yes or no to anything consequential.
 
-Seravo-0 and its repair tools run on the network's own hardware, so network data stays inside it. Cloud assistants help with planning and design, but they only advise and never run operations.
+The design places Seravo-0 and repair tools on local hardware; neither is included in the starter kit. Local processing is a privacy goal, not a guarantee that all data stays inside the network: optional ntfy delivery sends report content to the configured server. Cloud assistants are advisory in the target runtime architecture, not fleet operators.
 
 ## Seravo-0: directive and capabilities
 
-**Directive.** Maintain an accurate view of the fleet, evaluate its health, coordinate approved automation, and request small, bounded repairs. Inside its configured permissions it is the final authority on what runs and when, and a human owner can suspend it at any time. It must fail closed when evidence conflicts, a target looks unsafe, authorisation is missing, or a destructive step is unverified.
+**Target directive.** Maintain an accurate view of the fleet, evaluate its health, coordinate approved automation, and request small, bounded repairs. Dispatch must remain within configured permissions, subject to human approval and suspension. It must fail closed when evidence conflicts, a target looks unsafe, authorisation is missing, or a destructive step is unverified. This PR does not install an AI decision-maker or enforce the broader security architecture.
+
+**Implemented public subset.** The kit provides configured TCP reachability probes, heartbeat files, state-change alerts through optional ntfy, explicitly applied Wake-on-LAN, and evidence-based local project/daily reports. Those reports require fresh, complete fleet evidence and current project evidence; they do not establish controller, AI repair or Rave operation. See the [starter-kit behavior and setup](starter-kit/README.md).
 
 **Architecture capabilities, not a verified live checklist** (full detail in [docs/seravo-0.md](docs/seravo-0.md)):
 - Keep a reviewed inventory of every client and check it against live observations.
@@ -47,21 +57,25 @@ The project's own charter is explicit that it describes a target architecture, n
 
 ## Synergy: the broader architecture
 
-| Piece | What it gives the project |
+These are design relationships or unverified private-system descriptions, not a list of services shipped or deployed by this PR. Only the explicitly identified starter-kit subset is implemented here.
+
+| Piece | Intended contribution and public implementation boundary |
 |---|---|
-| One repo for everything | Scripts, prompts, standards, incident records and client snapshots live in a single searchable repository. |
-| Catalog and search | Any client can find a script by name or purpose, even after it has moved. |
-| Secret quarantine | Anything that looks like a credential is stopped before it reaches the repo. |
-| Standard installer | A fresh client can join and sync itself with one command. |
-| Scheduled jobs | About twenty timed jobs handle reporting, auditing, healing and housekeeping. |
-| AI hierarchy | Planners, the central brain, and repair hands each have a written scope. See [docs/ai-team.md](docs/ai-team.md). |
-| Handoff rules | Agents exchange work in one agreed format and name themselves in every log entry. |
-| Shared archive | Every prompt and reply is saved so Seravo-0 can learn from past work. |
-| Ingest watcher | A folder that archives whatever is saved into it. See [docs/workflow.md](docs/workflow.md). |
-| Golden standard and runbooks | One set of rules, a self-healing runbook and a mesh-security runbook keep clients consistent. |
-| Two homes for the code | A private GitHub repo plus a mirror on the network, so a client can sync either way. |
+| One reviewed repo | Public scripts, examples and documentation are included; private incident records and client snapshots are not. |
+| Catalog and search | Client-wide script discovery is a design goal, not a shipped catalog service. |
+| Secret quarantine | Pre-ingest credential quarantine is a design goal, not an automatic protection provided by this kit. |
+| Standard installer | The kit copies local files and user units without enabling them; it does not adopt clients or sync a fleet. |
+| Scheduled jobs | Poll, heartbeat, dry-run heal, daily and project units are supplied for manual setup; broader audit/housekeeping jobs are not included. |
+| AI hierarchy | Written scopes describe intended planners, brain and repair roles, not deployed models. See [docs/ai-team.md](docs/ai-team.md). |
+| Handoff rules | The target protocol defines role-labelled handoffs; no runtime handoff service is included. |
+| Shared archive | Only the ignored archive layout is included; automatic capture or learning is not provided. |
+| Ingest watcher | The broader workflow describes archiving saved content; no watcher is shipped. See [docs/workflow.md](docs/workflow.md). |
+| Golden standard and runbooks | Consistency and bounded recovery are design goals; this kit does not deploy a security enforcement system. |
+| Two homes for the code | A private mirror is described as a resilience goal; no mirror deployment or sync is verified here. |
 
 ## How the workflow evolved
+
+The following describes the project's broader workflow history, not automation included or verified by the starter kit:
 
 1. **Copy and paste.** Ask a cloud assistant, copy its commands, paste them into a terminal, and copy the output back.
 2. **Save and ingest.** Press Ctrl-S on a useful chat page into the Ingress folder. A watcher archives it so Seravo-0 can learn from it later.
