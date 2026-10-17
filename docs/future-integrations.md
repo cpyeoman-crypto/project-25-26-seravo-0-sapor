@@ -41,6 +41,27 @@ flowchart LR
 - **Safety.** A spoken command is treated like any other message: information, not an order. A voice cannot approve a consequential action. Approval stays on the approver's phone.
 - **Open.** Hardware for capture, wake-word versus push-to-talk, which models, and how the speaker is identified.
 
+## Author workspace: voice-assisted story development
+
+This is the creative side of the voice work. It runs on the creative node, kept apart from the security network, and **no story content goes into this repository**.
+
+- **Brainstorm on the go.** Speak plot ideas, character thoughts or scene fixes into a phone. Local speech-to-text turns them into notes, and the notes land in the author's private workspace, tagged by thread (plot, character, world, timeline).
+- **Keep the plot tight.** A continuity checker compares new notes with the private story bible: established facts, timelines, who knows what and when, and rules of the world. It flags contradictions, dropped threads and unexplained jumps, and asks questions instead of rewriting anything. The author decides.
+- **Recall by voice.** "What did I decide about X?" is answered from the vector memory of earlier notes, with a pointer to the source note.
+- **Capture first, organise later.** Raw transcripts are kept, and tidied notes are produced alongside them, never instead of them.
+- **Privacy.** Story material stays on the creative node and the long-term archivist. The security network's AI does not read it by default.
+- **Open.** Which notes format, how the story bible is structured, how conflicts are shown, and whether Seravo-1 (above) is the model that does this work.
+
+## Directory services and author access
+
+The author workspace and the other nodes would sit under one identity and access model, so who may reach what is decided in one place.
+
+- **Idea.** A central directory service (Microsoft Active Directory, or an open equivalent such as LDAP) holding accounts, groups and access policy for the fleet and the author workspace. Groups would follow the existing four access tiers, and the author workspace would get its own group.
+- **Why.** One place to add, change or remove access, sign-in that works across Windows and Linux, and an audit trail.
+- **Fit.** The Windows hub is the natural early candidate for a directory role. Linux nodes would join through a standard client. The mesh overlay and its tags stay the network-level control, and the directory adds user-level control on top.
+- **Safety.** Directory credentials are secrets like any other and stay out of the repository. The service sits on a trusted segment, with its own backup and a manual recovery path that does not depend on the AI.
+- **Open.** Whether Active Directory itself or an open alternative is wanted, which machine hosts it, and how much of the fleet should join. If "fully active directory" meant something different, such as a live, always-synced directory of the author's own working files, the voice-and-notes pipeline above covers most of it.
+
 ## Home automation control
 
 - **What.** A local home-automation hub (Home Assistant is the candidate) brings lights, plugs, thermostat and sensors under one roof.
