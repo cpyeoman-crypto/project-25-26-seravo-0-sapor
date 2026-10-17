@@ -8,7 +8,7 @@ That question belongs to the network and to the novel it grows beside. A 20-year
 
 ## Why it exists
 
-The network spans more than one building: trusted compute machines, isolated smart-home segments, and remote or travelling field gear, all joined by an encrypted overlay. Passive monitoring was not enough, and nobody wanted to be the one checking it. The project set out to build an orchestrator that patrols the physical network layer and the overlay together, and then repairs small things itself. The creative framework of the novel and the technical need for a guardian grew up together, which is where the name Sapor comes from `[REDACTED: story context]`.
+The network spans more than one building: trusted compute machines, isolated smart-home segments, and remote or travelling field gear, all joined by an encrypted overlay. Passive monitoring was not enough, and nobody wanted to be the one checking it. The project set out to build an orchestrator that patrols the physical network layer and the overlay together, and then repairs small things itself. The creative framework of the novel and the technical need for a guardian grew up together `[REDACTED: story context]`.
 
 It started as ping-sweep scripts. It is now an event-driven system with one central, reviewed repository as its source of truth: change watching with segment-aware alerts, self-healing loops, scheduled reports to the operator's phone, and automatic sync of every reviewed script and prompt to each adopted client. Credentials were scrubbed from the history on purpose and now live outside the repository.
 
