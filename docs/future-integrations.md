@@ -24,6 +24,11 @@ flowchart LR
     Weather["Weather station<br/>(planned)"] --> HA
     Lidar["LiDAR presence sensing<br/>(planned)"] --> HA
     Solar["Solar, storage, utilities<br/>(planned)"] --> HA
+    Cctv["CCTV, local recording<br/>(planned)"] --> HA
+    HA --> Mobile["Mobile machines: robots, mower, drone<br/>(idea, approval and geofence first)"]
+    Lidar --> Mobile
+    Cctv --> Mobile
+    Weather --> Mobile
     HA --> Phone["Approver phone<br/>(ntfy)"]
     S0 --> Phone
 ```
@@ -97,6 +102,94 @@ The IoT segment today holds lights, cameras, plugs, a thermostat, a home-automat
 | **Quarantine and containment** | A misbehaving device can be moved to a stricter segment, after a person approves. The honeypot and quarantine playbooks on the [roadmap](roadmap.md) cover the practice runs. |
 | **Open standards** | Prefer devices that speak open local protocols over closed ones, so the hub does not depend on one vendor. |
 
+## Physical security, geofencing and mobile machines
+
+This is the furthest-out idea on the page. It covers sensors that notice something on the owner's own property, and machines that can move: drones, robot vacuums, lawn mowers and similar. Everything stays on the owner's own land and inside the owner's own network.
+
+### The pieces
+
+| Piece | Role | Status |
+|---|---|---|
+| **LiDAR perimeter and zone sensing** | Notices movement or presence in a defined zone without recording faces. See [LiDAR](#lidar). | Idea |
+| **CCTV with local recording** | Cameras record to a local recorder only, with no cloud account. Seravo-0 reads **event metadata** (motion, zone, time), not the video itself, unless the owner opens a clip. | Idea |
+| **Geofence** | A boundary drawn around the owner's property (and smaller no-go zones inside it). Used to limit where any mobile machine may go and to flag when something crosses a line. `[REDACTED: boundary, coordinates, zones]` | Idea |
+| **Mobile machine controller** | One adapter per machine type that translates an approved request ("start the mower", "inspect the north fence") into that machine's own control interface. `[REDACTED: devices, protocols, pairing keys]` | Idea |
+| **Approval and override layer** | Decides whether a request is allowed, who must approve it, and how it is stopped. | Idea |
+
+### Machine classes
+
+| Class | Examples | Typical use | Notes |
+|---|---|---|---|
+| **Robot vacuums** | Floor cleaners | Run when the home is empty, pause when someone is present, report stuck, full bin and low battery. | Lowest risk. A good first machine. |
+| **Lawn mowers** | Robotic mowers | Schedule by weather, hold in rain, stay inside the geofence, alert if lifted or moved outside the boundary. | Blades: must stop when anyone or anything is detected in the zone. |
+| **Other ground robots** | Pool, window, gutter or snow robots | Same pattern: schedule, weather gate, status alerts. | One adapter per type. |
+| **Drones** | Small multirotor | Inspect the roof, solar panels or fence line on request, and check an alerted zone. | Highest risk, so last. Observation only (see rules below). |
+
+### Control modes
+
+| Mode | Meaning | Needs approval? |
+|---|---|---|
+| **Monitor only** | Read battery, state, errors. No commands. | No |
+| **Direct control** | The owner drives or starts the machine from the dashboard or phone. | The owner is the approval. |
+| **Scheduled routine** | A reviewed routine (for example weekly mowing, daily vacuum) inside an approved window. | Once, when the routine is set up |
+| **Sensor-triggered, supervised** | A LiDAR or CCTV event proposes an action ("check the north fence"). The owner approves on the phone before anything moves. | Yes, every time |
+| **Autonomous within an envelope** | The machine acts alone inside a written limit (zone, time, battery, weather). | Only for low-risk classes, and only after a long supervised period |
+
+### How a triggered action flows
+
+```mermaid
+flowchart TD
+    Sensor["LiDAR or CCTV event<br/>in a watched zone"] --> Seravo["Seravo-0 reads the event<br/>and checks context"]
+    Context["Weather, time, who is home,<br/>machine battery and state"] --> Seravo
+    Seravo --> Alert["State-change alert to the phone"]
+    Seravo --> Propose["Proposed action<br/>(for example: inspect zone)"]
+    Propose --> Approve{"Owner approves<br/>on the phone?"}
+    Approve -->|no or timeout| Stop["Nothing moves. Logged."]
+    Approve -->|yes| Gate{"Geofence, weather and<br/>battery checks pass?"}
+    Gate -->|no| Refuse["Refused. Reason sent to phone."]
+    Gate -->|yes| Machine["Machine runs the approved task"]
+    Machine --> Limit["Geofence enforced on the machine itself"]
+    Machine --> Done["Result and log back to the owner"]
+    Kill["Manual stop, always available"] -.-> Machine
+```
+
+### Safety rules (non-negotiable)
+
+1. **Own property only.** Machines operate only inside the owner's boundary. Nothing records or flies over a neighbour or the public.
+2. **Law first.** Drones are subject to aviation rules: registration, pilot qualification, line of sight, height limits, no-fly areas and privacy law. The owner checks the local rules before any flight. The system does not replace that duty. `[Open: which rules apply]`
+3. **Observation only.** No payloads, no weapons, no devices meant to harm, and no pursuit, approach or deterrence of any person or animal. A detection produces a **report to the owner**, not a confrontation. If someone's safety is at risk, the answer is the owner and the emergency services, not a machine.
+4. **Human in the loop.** Sensor-triggered action needs approval each time. A drone never launches on its own authority.
+5. **Geofence enforced on the machine,** not only in the AI. If the AI, the hub or the network fails, the machine still stays inside its limit and returns or stops.
+6. **Fail safe.** On lost link, low battery, bad weather or any doubt: stop, hold or return. Never continue.
+7. **Manual override that does not depend on the AI or the network:** a physical stop and a manual remote.
+8. **Weather and battery gates,** using the weather station and the machine's own state.
+9. **Privacy by design.** LiDAR is preferred over cameras where it is enough. Cameras get privacy masks for anything off the property. Retention is short and local. Footage is never sent to a cloud service.
+10. **Everything is logged,** with who approved what and when, and the log goes to the archive.
+11. **Isolated and hardened.** Machines sit on the isolated IoT segment, with credentials in the vault and no direct access to the internet where avoidable. Mobile machines are a physical risk **and** an attack surface, so they get the same quarantine and review as any new device.
+12. **No dual use by accident.** A machine may do the task it was approved for and nothing else. New abilities need a new written approval.
+
+### Rollout, in order
+
+1. **Monitor only.** Battery, state, stuck and error alerts for vacuums and the mower.
+2. **Direct control** from the dashboard and phone.
+3. **Scheduled routines** with weather and presence gates.
+4. **LiDAR and CCTV events** feeding alerts and the daily report (no machine movement).
+5. **Sensor-triggered, supervised** action for ground machines.
+6. **Drone** monitor and manual use only, then supervised inspection flights, if the legal and safety questions are settled. Autonomous drone use is **not** a goal until then.
+
+### What stays redacted
+
+Machine makes and models, protocols and pairing keys, control endpoints, geofence boundaries and coordinates, patrol and flight paths, camera positions and fields of view, blind spots, recorder location and access details. Those are exactly what someone would need to defeat the system, so they are not in this repository.
+
+### Open
+
+- Which machines come first, and which adapters are worth building.
+- Local rules for drones and camera use at the property, and whether a licence is needed.
+- How the geofence is enforced on each device type, and what the fallback is when a device has no geofence support.
+- How long CCTV events and clips are kept.
+- Whether LiDAR alone can cover most zones so fewer cameras are needed.
+- Whether any machine should ever act without approval, and under what limit.
+
 ## Media
 
 - **What.** Media services and devices (streaming boxes, a TV, speakers, a printer) are already present on the network and are watched for presence only. Further capability is open: a local media library and server, and room audio that could carry voice-out announcements.
@@ -126,4 +219,5 @@ The IoT segment today holds lights, cameras, plugs, a thermostat, a home-automat
 | Polling a new device | The identity-first resolver and heartbeat pattern ([polling.md](polling.md)) |
 | Memory of spoken or sensor context | Ingest queue and vector memory ([workflow.md](workflow.md)) |
 | Approval | The approver phones |
+| Safe physical control | Dry-run default, approval each time, quarantine of new devices, and logs in the archive |
 | Power-aware jobs | Burst compute and Wake-on-LAN |
