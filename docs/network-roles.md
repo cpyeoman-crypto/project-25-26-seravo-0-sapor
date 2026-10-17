@@ -1,5 +1,7 @@
 # Network roles
 
+Status, hardware classes and interactions are in [fleet-clients.md](fleet-clients.md).
+
 Roles only. Devices, addresses and names are deliberately left out.
 
 | Role | What it does |

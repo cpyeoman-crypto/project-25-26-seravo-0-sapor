@@ -60,19 +60,31 @@ See [docs/workflow.md](docs/workflow.md) for the detail.
 
 ## The clients, by function
 
+Full detail, hardware classes and interaction rules are in [docs/fleet-clients.md](docs/fleet-clients.md).
+
 | Function | What it does | Status |
 |---|---|---|
 | AI orchestrator | Runs Seravo-0, the sandbox and short-term memory. The central brain. | Active |
-| Edge scouts | Lightweight clients that report to the orchestrator and show a local view. One is the template for new clients. | Active |
-| Edge enforcer | Gateway-edge security. Watches the isolated sandbox and fails closed. | Active, gaining features |
-| Long-term archivist | Write-once vault for logs, audits and history. | Active |
-| Core resource and console | Main management machine, also provides subnet routing. | Active |
-| Router and controller host | Handles addressing and routing for the mesh. | Active |
-| Field gateway | Serves a remote or travelling LAN. | Active |
-| Mobile approvers | Phones used to approve or deny AI actions. | Active |
-| Internal auditor | Reviews sandbox traffic logs weekly. | Active role |
-| Creative and failover node | Hosts the novel workspace and a creative LLM. Also the backup for Seravo-0. | Active |
-| New fleet nodes, burst compute, credential vault | See the [roadmap](docs/roadmap.md). | Planned |
+| Edge scout / operator console | Operator console and Ingress drop folder. Template for new clients. Also a mesh subnet router. | Active |
+| Windows hub and mirror-port relay | Relays switch mirror-port data and stands in as the controller relay. | Active, degraded (access blocked) |
+| Mobile Linux medic client | Reports telemetry every five minutes. Restricted by policy. | Active |
+| Network controller, gateway, switch, access points | Segments, DHCP, Wi-Fi and routing. | Active |
+| Travel router | Brings a travelling LAN into the mesh. | Active, intermittent |
+| Mobile approvers | Phones and a tablet used to approve or deny AI actions. | Active |
+| Long-term archivist (local vault) | Write-once vault for logs, audits and history. | Active |
+| Windows fleet node | General fleet member, woken on demand. | Active, degraded (offline, identity conflict) |
+| Golden-master laptop fleet | Reconditioned laptops stamped from one image. | In progress |
+| Edge enforcer | In-line firewall, intrusion prevention and DNS filtering. Fails closed. | Planned |
+| Controller migration | Controller software moves onto the edge enforcer. | Planned |
+| Internal auditor | Weekly review of sandbox traffic logs. | Planned |
+| Creative and failover node | Second LLM, takes over if the orchestrator goes quiet. | Planned |
+| Dedicated archivist machine | Separate long-term store on an isolated direct link. | Planned |
+| Mobile quarantine buffer | Retired phone that scans files before they reach the orchestrator. | Planned |
+| Credential vault | Recovers a wiped client and reissues its identity. | Planned |
+| Field gateway | Subnet router for a remote LAN. | Planned / unverified |
+| Remote-desktop wall, status HUD | One-screen view of every client, plus a status display. | Planned |
+
+More in the [roadmap](docs/roadmap.md).
 
 ## Architecture at a glance
 
@@ -114,6 +126,7 @@ The real build is described only by what each part does. Anything that could hel
 
 | Document | What's in it |
 |---|---|
+| [docs/fleet-clients.md](docs/fleet-clients.md) | Every client: hardware class, role, interactions and status |
 | [docs/seravo-0.md](docs/seravo-0.md) | Directive, authority, capabilities and limits |
 | [docs/ai-team.md](docs/ai-team.md) | The assistants and models that helped, and how they hand off |
 | [docs/workflow.md](docs/workflow.md) | From copy-paste to Ctrl-S ingest to VS Code |
