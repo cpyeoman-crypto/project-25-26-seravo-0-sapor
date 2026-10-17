@@ -42,6 +42,75 @@ Other gate fields in evidence cover compatibility, verification and approval.
 PYTHON RUNTIME SCRIPTS
 ======================
 
+fleetctl.py — standard-library adopter and owned-file lifecycle
+  Public CLI: init, check, connect, deploy, status, uninstall.
+    --userconfig PATH loads private JSON; explicit flags override saved values.
+    Names: --kit-name, --unit-prefix (default fleet), --hub-label,
+    --client-label, --node-name; --role hub|client selects units.
+    Paths/target: --install-dir, --repo, --host x-user@x-host, --source.
+    Approval: deploy --apply; --enable explicitly requests timer activation;
+    --send permits poll/daily notifications; uninstall --apply permits removal.
+    --include-config may repeat only fleet.env, fleet_manifest.json,
+    maintenance.json. Config transfer is off by default.
+    Explicit trust: --trust-host-key --expected-fingerprint SHA256:...;
+    supply an independently verified fingerprint, never a guessed/scanned trust.
+    init --output PATH creates a private config exclusively.
+  Inputs: selected settings, exact public runtime source whitelist, optional
+          approved private config; target home/UID, systemd user session,
+          SSH known-hosts or explicitly approved out-of-band fingerprint.
+  Outputs: private settings JSON, source SHA256 manifest, generated unit files,
+           .fleetctl-installed.json ownership/hash record, per-file status
+           (unchanged/modified/missing/unsafe), refusal diagnostics and success/
+           nonzero status (ordinary refusal 1; argparse usage errors may be 2).
+  Blocks:
+    - settings/name/path validation: strict lowercase bounded labels; hub/client
+      role; no root SSH target, unsafe path components or unknown config keys.
+    - inspect/home_path/read_private: reject symlinks, unsafe ancestors,
+      foreign ownership and overly accessible private files; destination stays
+      strictly below the acting user's home.
+    - environment/validate_runtime: parse env/JSON as data, reject placeholders
+      and shell expressions; require client node choice and activation inputs.
+    - bundle/digest: select fixed allowed files, add only explicitly approved
+      private filenames and compute SHA256; no recursive private-tree copying.
+    - units/install: generate destination/prefix/role-aware units, preflight
+      ownership and existing hashes before writes, write restrictive files and
+      record ownership, reload user daemon; default units stay disabled.
+    - trusted/ssh_options/connection: fixed unprivileged remote Python probe;
+      BatchMode=yes, StrictHostKeyChecking=yes, ForwardAgent=no; password and
+      keyboard-interactive authentication disabled. Unknown keys halt.
+      Explicit fingerprint trust uses a private per-operation known-hosts file,
+      independently checked with ssh-keygen, removed after the operation.
+    - deploy/receive: print exact manifest before approval; applied SSH staging
+      transfers exact files and request data, verifies whitelist/checksums before
+      installation, and cleans successful staging. Failed private stages can
+      remain for operator inspection; no recursive cleanup is executed.
+    - installed/local_status: restrict manifest paths to allowed managed entries;
+      inspect bytes; uninstall only within recorded ownership boundaries.
+    - main/parser: public command routing; _install is the legacy wrapper
+      implementation detail and _receive is the verified deployment receiver,
+      not interfaces to invoke manually or approval bypasses.
+  Side effects by command:
+    init writes one mode-0600 JSON; check only reads local config;
+    connect contacts SSH and runs the fixed home/UID probe;
+    deploy without --apply only reads/hashes/prints, no network/write/services;
+    deploy --apply stages/transfers/installs and reloads systemd --user;
+    status reads managed-file state (over SSH when a host is selected);
+    uninstall is a read-only plan until --apply, then removes eligible owned
+    files and reloads units. Explicit host-key trust temporarily writes private
+    trust data. No root/sudo, passwords, agent forwarding or linger changes.
+  Prerequisites: Python 3.9+, trusted reviewed source, acting-user ownership,
+    private config (0600) and directories (0700), systemd user session for
+    installation. Remote use needs OpenSSH ssh/scp; explicit fingerprint trust
+    also needs ssh-keyscan/ssh-keygen, independent trusted fingerprint evidence,
+    remote Python and user systemd.
+  Limits: checksum integrity is not source authenticity. No backup, automatic
+    upgrades/merges, heartbeat transport, controller/Rave connector, live WoL,
+    AI dispatch or unattended deployment. Status is file integrity, not live
+    health/lifecycle evidence. Preserve original settings for uninstall and
+    separately review retained private/modified data; never recursively delete.
+  Links: README.md#safe-adopter-workflow;
+         ../docs/monitoring-and-protection.md#adopter-threat-model.
+
 src/resolver.py — imported identity-first resolver; no standalone CLI
   Inputs: manifest JSON, local neighbour output, optional Tailscale JSON,
           injected probe callable and per-node MAC/name/address fields.
@@ -208,7 +277,8 @@ src/project_monitor.py — read-only local repository/evidence assessment
           and fill six connector gates from real observations, not guesses.
           Re-snapshot after changes; never auto-approve candidate hashes.
   Unit: optional hourly fleet-project.timer; edit --repo %h/xxxx-project to the
-        reviewed checkout before manual enabling. Installation leaves it disabled.
+        reviewed checkout before activation. Default/legacy installation leaves
+        it disabled; explicit adopter --apply --enable may activate it with --repo.
         Periodic hashing/reassessment happens only if enabled; it never reruns
         tests, approves documentation or refreshes underlying evidence timestamps.
         Daily 07:10 and hourly calendar schedules use the host local timezone.
@@ -244,9 +314,21 @@ These are validation tools, not operational collectors or deployment evidence
 unless their actual result/time/revision is separately reviewed and recorded.
 They use unittest/mock from the standard library. Do not replace their fixtures
 with real credentials or fleet addresses.
-Disposable runtime fixtures use TEST_DIR = Path(tempfile.gettempdir()), normally
+The existing src-runtime test suites use TEST_DIR = Path(tempfile.gettempdir()), normally
 /tmp on Linux, not the repository's tests directory; TemporaryDirectory handles
 cleanup. "Test-local" below means scoped to the test, not stored beside its source.
+
+tests/test_fleetctl.py
+  Blocks: FleetctlTests exercise settings/init, manifest dry-run, unsafe inputs,
+          private permissions/symlinks, staged SSH/scp deployment, trust checks,
+          tamper rejection, ownership/idempotence, activation and uninstall.
+  Inputs: synthetic source/home/config fixtures and standard-library mocks;
+          command stubs simulate ssh/scp/systemctl/key tools.
+  Outputs: unittest result stream and stub command logs.
+  Side effects: disposable checkout-local .fleetctl-test-* fixture directories
+                and local stub subprocesses, cleaned through TemporaryDirectory;
+                no live SSH, notification delivery or systemd management.
+  Limits: stubbed success is not evidence of a real SSH/systemd deployment.
 
 tests/test_kit.py
   Blocks: ResolverTests (MAC/neighbor/trust order), PollTests (seed, transitions,
@@ -284,44 +366,43 @@ tests/test_runtime_validation.py
 SHELL SCRIPTS
 ==============
 
-install.sh — per-user file/unit installation, never automatic timer activation
-  Inputs: role argument (hub default, client for heartbeat-only installation),
-          HOME and source directory.
-  Outputs: ~/fleet-kit/{src,config,systemd,state/heartbeats}, private initial
-           fleet.env/manifest when absent, SCRIPT_GUIDE.txt when source differs
-           from destination, selected systemd user units and printed manual
-           enabling instructions.
-  Blocks:
-    - strict shell mode and path/role setup.
-    - create destination, copy runtime trees and SCRIPT_GUIDE.txt unless already
-      installed there.
-    - create private config from examples only when absent; chmod fleet.env 600.
-    - choose client heartbeat or hub poll/daily/heal/project units; copy into
-      ~/.config/systemd/user. Project timer activation is optional.
-    - systemctl --user daemon-reload, then print (not execute) enable commands
-      and optional lingering advice.
-  Side effects: local copy/overwrite of shipped source/example/unit files,
-                directory creation, private config creation and daemon reload.
-                Existing real config is not replaced by example creation.
-  Prerequisites: Bash, coreutils, systemd user session and writable HOME.
-                 Inspect any units/config already installed before re-running.
-  Limits: no dependencies/AI/controller are installed; nothing runs as root;
-          no timer is enabled automatically. Client collection remains manual.
-          Hub instructions include fleet-project.timer: edit its service --repo
-          placeholder to the reviewed checkout before enabling that timer.
+install.sh — compatible local wrapper; never enables timers
+  Inputs: first role argument (hub default, client for heartbeat-only), remaining
+          fleetctl options, HOME and source directory. Client requires an
+          explicitly chosen --node-name (x-node is non-operational).
+  Outputs: fleetctl's local installation and ownership record; initial private
+           config from examples only when absent; units NOT enabled.
+  Blocks: strict Bash mode; locate script directory; take/shift role; exec
+          Python fleetctl.py _install with --role, --send and forwarded flags.
+  Side effects: shared installer writes exact allowed files and generated user
+                units, creates private config/directories and reloads systemd;
+                never enables timers. --send prepares legacy notification
+                behaviour for a later separately approved manual activation.
+  Prerequisites: Bash, Python 3.9+, systemd user session, user-owned HOME and
+                 reviewed source/config; same collision/permissions checks as
+                 adopter deployment. No dependencies are installed.
+  Limits: --enable is refused, not forwarded as an activation bypass. Matching
+          managed bytes may be reused; unowned/changed target content is not
+          overwritten. Client heartbeat collection remains manual.
 
 build_package.sh — build a distributable archive of public kit content
   CLI: ./build_package.sh
-  Inputs: shipped README/prompt/checklist/TXT guide, requirements/install script,
-          source, example configs, systemd definitions and tests.
+  Inputs: fleetctl.PUBLIC's exact runtime whitelist, plus the shipped
+          README/prompt/checklist/TXT guide, five explicitly named test files
+          and the five named systemd service/timer template pairs.
+          No runtime state, actual config or arbitrary directory/glob content.
   Outputs: starter-kit/fleet-kit.zip, replacing any archive of that name.
-  Blocks: strict shell mode; cd to script directory; remove previous archive;
-          zip explicit public paths with pycache/pyc exclusions; print output path.
-  Side effects: deletes/recreates the local zip only; does not install or enable.
-  Prerequisites: Bash, zip, readable shipped files and writable starter-kit folder.
-  Limits: inspect source trees for unexpected private files before packaging;
-          state and actual config filenames are not selected. The archive is
-          not the full reviewed repository or a deployment attestation.
+  Blocks: strict shell mode; cd to script directory; inline standard-library
+          Python imports fleetctl's fixed whitelist, validates selected files,
+          rejects a symlink output, writes the zip and prints its output path.
+  Side effects: replaces the local zip; Python may create its import cache;
+                does not install, contact a host or enable services.
+  Prerequisites: Bash, Python 3.9+, readable shipped files and writable kit folder;
+                 no external zip command or Python dependency is required.
+  Limits: a checksum/deployment manifest is generated by fleetctl deploy, not
+          an authenticity signature for this zip. Review the source/provenance.
+          The archive is not the full reviewed repository or a deployment
+          attestation; it excludes private settings, evidence and archives.
 
 MAINTENANCE REMINDER
 ====================

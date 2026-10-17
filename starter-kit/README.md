@@ -9,7 +9,7 @@ A small, tested, standard-library-only toolkit that reproduces the core loop of 
 - **Heartbeat** from each client so silence gets noticed.
 - **Assess project maintenance** from tracked documentation hashes and reviewed local evidence, without running ingested commands or external connectors.
 
-It does not include any AI model, network controller integration or the author's real configuration. It is the skeleton you tweak, with an AI assistant, into a build of your own. Start with [PROMPT_GUIDE.md](PROMPT_GUIDE.md) and [INFORMATION_CHECKLIST.md](INFORMATION_CHECKLIST.md).
+It does not include any AI model, network controller integration or the author's real configuration. Start with the [safe adopter workflow](#safe-adopter-workflow) and [INFORMATION_CHECKLIST.md](INFORMATION_CHECKLIST.md), then use [PROMPT_GUIDE.md](PROMPT_GUIDE.md) to review adaptations with an assistant.
 
 **Not deployment proof:** installed units, a matching documentation hash and a configured connector entry do not establish live service health. Missing, invalid or stale required evidence yields `ATTENTION` and a nonzero project-check exit. Rave remains planned/disabled with no verified connector; see [project maintenance](../docs/monitoring-and-protection.md#connectors-and-rave).
 
@@ -23,6 +23,7 @@ PROMPT_GUIDE.md              prompts to paste into an AI assistant, in order
 INFORMATION_CHECKLIST.md     the facts to gather before you prompt
 SCRIPT_GUIDE.txt             complete script/block and connector reference
 install.sh                   per-user install of files and systemd timers (nothing runs as root)
+fleetctl.py                  standard-library adoption, SSH verification and owned-file lifecycle
 build_package.sh             builds fleet-kit.zip from this folder
 requirements.txt             none: Python 3.9+ standard library only
 src/
@@ -41,17 +42,70 @@ systemd/                     poll, heal, daily, heartbeat and optional hourly pr
 tests/                       standard-library unittest checks
 ```
 
-## Quick start (about 15 minutes)
+## Safe adopter workflow
+
+Review the [threat model](../docs/monitoring-and-protection.md#adopter-threat-model) first. Python 3.9+ uses only the standard library; applied installation needs Linux, a systemd user session and writable user-owned directories. Remote adoption additionally needs OpenSSH `ssh`, `scp`, `ssh-keyscan`/`ssh-keygen` for explicit fingerprint trust, key-based login and remote Python/systemd. No root, sudo, passwords or agent forwarding are used. This is an operator-run workflow, not unattended deployment.
+
+**Every `x-…` identifying value below is masked and explicitly non-operational.** Replace it privately; never run the examples unchanged. `hub`/`client` and the default unit prefix `fleet` are public role/default labels.
+
+1. **Choose names and paths before installing.** Kit name, unit prefix, hub/client labels and node name must match `^[a-z][a-z0-9-]{0,31}$`. Default settings are kit/prefix `fleet`, installation `~/fleet-kit`, role `hub`, labels `hub`/`client`. Use a distinct prefix and directory for a separate installation; prefixes name units such as `fleet-poll.timer`. The destination must be strictly below the target user's home, absolute or `~/`-relative, without spaces, traversal, symlinks or writable ancestors. Client operations require an explicitly chosen `--node-name`; a kit label is not device identity.
+2. **Initialise private choices** from `starter-kit/`:
+
+   ```sh
+   python3 fleetctl.py init --output state/x-adopter.json \
+     --kit-name x-kit --unit-prefix fleet --install-dir /home/x-user/x-kit \
+     --role hub --hub-label hub --client-label client --host x-user@x-host
+   ```
+
+   `init` creates a mode-0600 JSON file exclusively; it refuses an existing output and does not install or contact a host. `state/` is ignored in this checkout; protect that directory too. `--userconfig state/x-adopter.json` loads it on later commands; explicit options override saved choices. For a client choose `--role client --node-name x-node` at initialisation. Do not edit identity choices between deployment and uninstall: retain the original userconfig.
+3. **Prepare and check private runtime configuration.** Edit `config/fleet.env` and, for a hub, `config/fleet_manifest.json` from reviewed examples; keep files mode 0600 and private directories mode 0700, owned by the acting user. The examples deliberately contain invalid placeholders. Remove or privately replace all runtime placeholders; validate names, MACs, ports and permitted destinations yourself. Do not put shell expressions into `fleet.env`: it is parsed as data, never sourced.
+
+   ```sh
+   python3 fleetctl.py check --userconfig state/x-adopter.json
+   ```
+
+   This reads local config without network or service changes; it is not a live health check. Config files are **not transferred by default**. Prepare destination config privately, or deliberately opt in to each exact permitted filename with repeated `--include-config fleet.env`, `--include-config fleet_manifest.json` or `--include-config maintenance.json`. Never include private keys, archives or state.
+4. **Verify SSH identity separately.**
+
+   ```sh
+   python3 fleetctl.py connect --userconfig state/x-adopter.json
+   ```
+
+   SSH is noninteractive: `BatchMode=yes`, `StrictHostKeyChecking=yes`, `ForwardAgent=no`, password and keyboard-interactive authentication disabled. Unknown/changed keys halt. Pre-provision independently verified known-hosts entries, or explicitly use `--trust-host-key --expected-fingerprint SHA256:x-out-of-band-fingerprint` after obtaining the actual fingerprint through a separate trusted channel. That masked fingerprint is intentionally invalid. The trust option matches the scanned key against the supplied fingerprint and uses a temporary, private per-operation known-hosts file; it is not automatic TOFU or a global trust change. `connect` runs a fixed remote Python home/UID check, not a deployment.
+5. **Review the exact plan, then approve deployment.**
+
+   ```sh
+   python3 fleetctl.py deploy --userconfig state/x-adopter.json
+   python3 fleetctl.py deploy --userconfig state/x-adopter.json --apply
+   ```
+
+   The default deploy prints the exact source-file SHA256 manifest and changes no files, network or services. `--source` selects a reviewed kit tree, not an arbitrary archive installer. Applied deployment stages only a fixed public-file whitelist (plus explicitly selected config), rejects unknown/missing entries and verifies checksums before installation. Checksums prove integrity, **not authenticity**: review source/provenance independently. Applied installation writes files and generated user units, records ownership in `.fleetctl-installed.json` and reloads the user daemon. It never creates a backup.
+6. **Inspect before activating.** `python3 fleetctl.py status --userconfig state/x-adopter.json` compares recorded files with installed bytes; it is not live fleet/service-health evidence. Units stay disabled by default. Only `deploy --apply --enable` requests entrypoint activation; review the activation limitations below first. `--send` separately permits poll/daily delivery. Neither flag authorises live Wake-on-LAN, external connectors, lingering or AI actions. Configure genuine project evidence separately; installing units cannot promote a connector to verified.
+
+   Explicit activation selects hub poll/daily timers or the client heartbeat timer; the project timer is eligible only with `--repo` pointing to an existing reviewed target-side Git checkout. The heal timer is never selected by `--enable`, and its generated service has no live-wake `--apply`. A deployed kit tree is not that Git checkout. Configure destination runtime files before approval (or explicitly select their transfer) and retain the original deployment choices for lifecycle commands. Reinstalling without `--enable` does not stop timers you previously enabled; inspect their real state with `systemctl --user status` before making changes.
+
+### Reinstallation, rollback and uninstall
+
+Repeat only with the same choices and unchanged managed bytes: matching owned files are idempotent, while unowned collisions or changed managed files halt rather than being overwritten. An edited/private config is not silently reset. This is not an in-place upgrade/merge or backup mechanism; inspect conflicts and preserve needed data yourself before any deliberate replacement.
+
+Review `python3 fleetctl.py uninstall --userconfig state/x-adopter.json` first; add `--apply` only after inspecting its ownership-bound removal plan. Uninstall removes only recorded, unchanged managed content, not arbitrary directory contents; private configuration, modified files and runtime state need separate operator review. Do not use a recursive directory deletion as rollback. For a failed partial deployment, inspect the reported files/staging location before retrying; retained data is not a backup.
+
+### Local install compatibility
+
+`./install.sh` (hub) and `./install.sh client --node-name x-node` remain supported local entrypoints through the same installer. The client node placeholder must be replaced privately. The wrapper never enables timers and does not support `--enable`; it is not an alternative trust/overwrite bypass. Inspect generated units and edit private config before manual activation. Use `fleetctl.py status`/`uninstall` with matching installation choices for owned-file inspection/removal.
+
+## Runtime setup after adoption
 
 1. **Install ntfy on your phone** (Android or iOS) and subscribe to a long random topic name. Generate one:
    ```
-   python3 -c "import secrets; print('mynet-' + secrets.token_urlsafe(18))"
+   python3 -c "import secrets; print(secrets.token_urlsafe(32))"
    ```
+   The generated value is private runtime data, not a public example; never paste it into prompts or shared output.
 2. **Get the kit** onto the hub machine (the always-on Linux box that will do the polling):
    ```
    cd starter-kit && ./install.sh
    ```
-   This copies runtime files and `SCRIPT_GUIDE.txt` to `~/fleet-kit`, creates `config/fleet.env` and `config/fleet_manifest.json` from the examples, and installs systemd user timers without enabling them. Hub suggestions include `fleet-project.timer`: edit its service's `--repo %h/xxxx-project` to your reviewed checkout before enabling it; the printed suggestion is not a ready-to-run configuration.
+   The local wrapper installs runtime files to `~/fleet-kit`, creates initial private example config only when absent, and installs user units without enabling them. The project unit needs a reviewed repository path before activation; an unconfigured path is not deployment evidence.
 3. **Edit `config/fleet.env`:** set `NTFY_TOPIC` and `SITE_NAME`.
 4. **Check delivery:**
    ```
@@ -64,13 +118,13 @@ tests/                       standard-library unittest checks
    python3 src/fleet_poll.py --manifest config/fleet_manifest.json
    ```
    The first reachability observation seeds state; later reachability changes produce alerts. With `heartbeat_dir` configured, a missing, invalid or old heartbeat for a reachable node can alert on the first poll. Run it a second time, then stop one machine and run it again to see an alert.
-7. **Run the tests:** `python3 -m unittest discover -s tests`
+7. **Validate the reviewed source checkout:** from its `starter-kit/` directory, run `python3 -m unittest discover -s tests`. Tests are not copied into a runtime installation; this result is not deployment evidence.
 8. **Enable timers** once the dry-run looks right:
    ```
    systemctl --user enable --now fleet-poll.timer fleet-daily.timer
-   loginctl enable-linger $USER
    ```
-9. **On each client** (optional but recommended): `./install.sh client`, edit the `--name` and `--out` in `fleet-heartbeat.service`, then enable `fleet-heartbeat.timer`. Make the hub collect the file into `state/heartbeats/` with rsync, scp or a shared folder.
+   Lingering is a separate policy decision, not a setup prerequisite; review the threat table before an administrator permits timers after logout.
+9. **On each client** (optional but recommended): `./install.sh client --node-name x-node` with a privately chosen node name, inspect the generated heartbeat service, then enable `fleet-heartbeat.timer`. Make the hub collect the file into `state/heartbeats/` with an independently approved transfer mechanism.
 
 ## How the pieces behave
 
@@ -95,7 +149,7 @@ Follow the [manual evidence-authoring workflow](../docs/monitoring-and-protectio
 
 The local checker writes `state/project_status.json`; daily reporting consumes it through `--project-state` and checks expected fleet members through `--manifest`. Each poll records node `checked_at`. Missing, partial, malformed or stale fleet/project evidence prevents an all-green report, even if the hub's own metrics look fine.
 
-The hub installer copies the optional hourly `fleet-project.timer` but does not enable it or collect missing external evidence. Installation and timer activation are separate operations: edit the service's non-operational `--repo` path to your reviewed checkout, inspect configuration/results, then manually enable the timer. All existing timers remain disabled after installation too. No text found in evidence, Markdown or ingest content is executed.
+The hub installer supplies the optional hourly `fleet-project.timer` without collecting external evidence. Installation and activation are distinct approvals: the default and legacy wrapper leave units disabled; only the adopter's explicit `deploy --apply --enable` can request activation. Inspect the repository path, configuration and results first. No text found in evidence, Markdown or ingest content is executed.
 
 ## Adapting it
 

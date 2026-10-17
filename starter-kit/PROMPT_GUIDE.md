@@ -15,6 +15,35 @@ For each change, follow the root [repository maintenance conditions](../README.m
 5. **You approve every action.** The AI suggests and writes code. You run the commands.
 6. **Only your own machines.** Never point this at hardware you do not administer.
 7. **Keep a rollback.** Before an edit, copy the file (`cp file file.bak`) or commit it.
+8. **Adopt deliberately.** Follow the [safe adopter workflow](README.md#safe-adopter-workflow), not an assistant-generated SSH/install command. Keep host trust, deploy approval, timer activation and evidence review separate. Never give an assistant private keys or ask it to bypass an unknown host key.
+
+## Adoption review prompt
+
+Use this before the runtime-customisation steps below. All `x-…` identifiers are explicitly non-operational; role labels and the default unit prefix `fleet` are not private identities.
+
+```
+Read fleetctl.py, README.md's safe adopter workflow, SCRIPT_GUIDE.txt and the
+adopter threat model in ../docs/monitoring-and-protection.md before proposing
+commands. Use only flags present in this checkout. Help me choose a kit name,
+unit prefix (default fleet), private absolute install directory, hub/client role
+and node label; show the naming constraints and collision checks.
+
+Keep users, SSH hosts, paths, topics and fingerprints x-masked in shared output.
+Run no remote commands for me. Explain init/check/connect/deploy/status/uninstall
+inputs and effects, the default deployment plan and the explicit apply boundary.
+Require SSH key authentication with BatchMode=yes, StrictHostKeyChecking=yes and
+agent forwarding off; never suggest root, sudo, passwords or automatic TOFU.
+Describe independent out-of-band fingerprint verification before host trust.
+
+Explain the public-file checksum whitelist, integrity versus authenticity,
+private config permissions/ownership and what happens on reinstallation or
+uninstall when managed files change or private data already exists. Do not claim
+there is a backup. Show the rollback plan before applying anything.
+Keep units disabled unless I explicitly approve the supported --enable path;
+the legacy install.sh wrapper never enables them. No live WoL, controller/Rave
+connector activation, linger changes or unattended deployment. Installation is
+not lifecycle verification or fresh evidence. Wait for my review.
+```
 
 ## Master prompt
 
@@ -36,7 +65,8 @@ Environment:
 - Network controller: <TP-Link Omada / UniFi / none / unknown>
 - Uplinks: <cable / satellite / cellular, failover: yes/no>
 
-The kit is standard-library-only Python with these files: src/ntfy_notify.py,
+The kit is standard-library-only Python with fleetctl.py for adoption and:
+src/ntfy_notify.py,
 src/resolver.py, src/fleet_poll.py, src/heartbeat.py, src/wol_healer.py,
 src/daily_status.py, src/project_monitor.py, config/*example*, systemd/*.
 
@@ -46,11 +76,13 @@ authentication and privacy prerequisites are reviewed. Read SCRIPT_GUIDE.txt.
 
 Rules you must follow:
 1. Never ask me for passwords, keys, tokens or my real ntfy topic. Use placeholders.
-2. Every command that changes anything must be dry-run by default, with an
-   explicit --apply flag.
+2. Deployment plans are dry-run by default and require explicit --apply.
+   Explain local file-writing setup/check operations separately; never pretend
+   a probe or state write has no effects. Runtime wake changes need --apply.
 3. Do not add third-party dependencies unless I agree first.
-4. Do not run anything as root unless I say so. Prefer systemd --user.
-5. Alerts must fire on state change only. The first run must only seed state.
+4. Do not use root, sudo, password automation or SSH trust bypasses. Use user units.
+5. Reachability alerts seed state on the first run, then follow state changes;
+   configured missing/stale heartbeat evidence can alert even on a first poll.
 6. Keep messages free of addresses and hardware identities unless I ask.
 7. Explain each change in two or three sentences, show the full diff, then wait.
 8. If you are unsure about my setup, ask me a question instead of guessing.

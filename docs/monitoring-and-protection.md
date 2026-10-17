@@ -1,6 +1,6 @@
 # Monitoring and protection
 
-**Scope:** the protection and controller automation below describe the broader target/private system, not a verified public deployment. The [starter kit](../starter-kit/README.md) implements only the documented local/fleet subset; timers must be enabled manually. Its read-only [project monitor](#local-project-maintenance) checks local files and evidence, not live controller, AI, Rave or security services.
+**Scope:** the protection and controller automation below describe the broader target/private system, not a verified public deployment. The [starter kit](../starter-kit/README.md) implements only the documented local/fleet subset; timer activation requires explicit operator approval. Its read-only [project monitor](#local-project-maintenance) checks local files and evidence, not live controller, AI, Rave or security services.
 
 ## Evidence-based project maintenance
 
@@ -50,13 +50,31 @@ All of these are dry-run until applied. Diagrams: [illustrations.md](illustratio
 ## Recovery
 A planned vault holds credentials and system states so a lost or compromised client can be rebuilt quickly and issued a new identity.
 
+## Adopter threat model
+
+Use the [adoption workflow](../starter-kit/README.md#safe-adopter-workflow) and inspect [script effects](../starter-kit/SCRIPT_GUIDE.txt) before approving an operation. The kit is not an isolation boundary against a compromised local account, source checkout or remote administrator. Creative/novel work stays separate from security work on separate machines; installation does not verify that separation.
+
+| Risk | Built-in mitigation | Residual operator responsibilities |
+|---|---|---|
+| SSH interception / trust on first use (TOFU) | The adopter uses `BatchMode=yes`, `StrictHostKeyChecking=yes` and no agent forwarding; unknown or changed keys halt instead of prompting to accept them. | Establish host-key trust out of band before connecting. Verify a fingerprint through an independent trusted channel, not a key fetched over the same untrusted connection. Protect known-hosts and private keys; revoke compromised access. |
+| Public ntfy topic guessing and message leakage | Empty topic defaults to dry-run; placeholder delivery settings are rejected. Notifications require explicit sending at poll/report callers. | Choose a long random private topic; randomness is not authentication. A public server and subscribers can see message content, including the notifier's local hostname footer. Prefer authenticated self-hosting, minimise payloads and review retention/access before sending. |
+| Wake-on-LAN broadcast abuse | The healer is dry-run unless explicitly given `--apply`; candidates require a wake flag and MAC. Adoption does not authorise live wake packets. | Restrict broadcast reach and wake permissions; review each target and broadcast domain. Magic packets are not authenticated and waking a machine does not verify recovery. |
+| Omada credential theft / self-signed TLS interception | No controller connector or credential provisioning is shipped; connector claims cannot establish verification. | If adding one, use read-only least-privilege credentials in private storage, verify the exact API and explicitly trust an independently verified certificate/CA. Never disable TLS verification to accommodate a self-signed certificate. Rotate/revoke credentials. |
+| Tailscale ACL or subnet-router overreach | The resolver only reads optional local peer status; the kit does not create ACLs, advertise routes or enrol peers. | Review tailnet access, device approval, route approval and subnet-router reachability separately. A reachable peer is not authorisation to manage its subnet. Do not expose security or creative machines merely to make probes pass. |
+| Persistent systemd user work / lingering | Units are inactive by default; activation is an explicit separate approval. The adopter does not enable lingering or use root/sudo. | Review every selected unit before enabling; it may publish configured alerts or probe repeatedly. `loginctl enable-linger` is a separate administrative policy decision that keeps user jobs alive after logout. Remove lingering only after checking unrelated jobs. |
+| Tampered bundle / supply chain | Adopter transfer selects a fixed whitelist; the receiver validates its checksum manifest before copying managed content. | Checksums provide integrity, **not authenticity**: an attacker can replace both files and checksums. Obtain and review source through a trusted channel, verify provenance independently and inspect local toolchain/SSH trust. |
+| Logs, reports, heartbeat and evidence privacy | Private runtime files are excluded from the public bundle; adoption uses restrictive private configuration permissions. Project summaries avoid arbitrary evidence text. | Review stdout, journals, notification spools, hostnames and report fields before sharing; protect ownership, parent-directory access, retention and deletion. Git-ignore is not encryption or an access-control boundary. |
+| Accidental overwrite or destructive rollback | Adoption records owned content and refuses conflicting installs; uninstall is bounded by its ownership manifest and preserves changed/private data. | Inspect plans and conflicts; preserve any needed data yourself. Neither deployment nor uninstall creates a backup. Do not recursively delete an installation directory just because uninstall retained it. |
+
+Installing or connecting does not approve AI actions, controller changes, unattended deployment, live Wake-on-LAN or a connector lifecycle promotion. Keep proposed actions, explicit approval and fresh observed outcomes separate; fail closed when identity, ownership, integrity or required evidence cannot be established.
+
 ## Local project maintenance
 
 ### What is implemented
 
 `starter-kit/src/project_monitor.py` is a standard-library, read-only **local repository/evidence checker**. It reads maintenance policy configuration, tracked/non-ignored new documentation and local evidence; it writes a derived status report to `state/project_status.json`. Approved document hashes live in **evidence `docs`**, not in the maintenance configuration. “Read-only” means no network/device changes, command execution from input or external service polling; writing the report is its explicit local side effect.
 
-It does not install the broader architecture, repair code, invoke a model, authenticate to a controller, scan the network or establish that a private service is deployed. All timers remain manually enabled, including the optional hourly `fleet-project.timer`. A fresh report only describes the configured checks.
+It does not install the broader architecture, repair code, invoke a model, authenticate to a controller, scan the network or establish that a private service is deployed. Timer activation always needs explicit operator approval: default adoption and the legacy wrapper leave units disabled; only adopter `deploy --apply --enable` requests entrypoint activation. A fresh report only describes the configured checks.
 
 ### Documentation review and SHA256 approval
 
@@ -209,11 +227,11 @@ python3 starter-kit/src/daily_status.py \
 
 Use `--config` to select your reviewed private copy instead of the public policy example when needed. No `--send` is shown: the daily report prints only. Attention is expected while required evidence or connector prerequisites are missing; do not suppress the nonzero result.
 
-For the installed hourly user unit, edit `fleet-project.service`: its `--repo %h/xxxx-project` is a non-operational placeholder, not the installed kit's repository root. Point it to the reviewed checkout and supply your chosen configuration/evidence paths if they differ from defaults. Reload the user units after editing, then enable the timer manually only when ready. Installation itself leaves the timer disabled.
+For the supplied hourly user unit, `--repo %h/xxxx-project` is a non-operational placeholder, not the installed kit's repository root. The adopter generates a repository argument from `--repo`, or an unconfigured path when omitted. Point it to a reviewed checkout and supply your chosen configuration/evidence paths if they differ from defaults. Reload edited units before manual activation. Default installation and the legacy wrapper leave the timer disabled; explicit adopter activation requires a configured repository for the project timer. An installed kit is not automatically a complete reviewed Git checkout.
 
 #### Scheduling, refresh and operator diagnostics
 
-- **Nothing starts on installation.** Only after explicit manual activation does `fleet-project.timer` recompute local fingerprints/document hashes and reassess existing evidence hourly (`OnCalendar=hourly`, with a boot trigger after two minutes). It never periodically approves those hashes, runs tests or refreshes observation timestamps.
+- **Default installation starts nothing.** The legacy wrapper never enables units; only explicit adopter `deploy --apply --enable` requests entrypoint activation. Once deliberately activated, the project timer recomputes local fingerprints/document hashes and reassesses existing evidence hourly. Supplied unit templates have a two-minute boot trigger; adopter-generated units use their generated schedule. Inspect installed units rather than assuming identical templates. The monitor never periodically approves hashes, runs tests or refreshes observation timestamps.
 - **Daily versus hourly.** `fleet-daily.timer` uses `07:10:00` in the host's local system timezone; the project timer runs hourly using the same systemd calendar/timezone context. Both calendar timers are persistent, so missed calendar runs can be caught up when activated. Verify the actual next-run times on the host instead of assuming UTC.
 - **Refresh manually.** A person runs the existing reviewed tests/checks outside the monitor, reviews their real result, updates genuine epoch/fingerprint evidence and approves changed documentation separately. Repeatedly running the monitor only changes the derived report time, not the underlying evidence's expiry. A fresh report over expired evidence remains attention.
 - **Read exit states honestly.** Monitor exit `0` means its configured evidence gates passed; exit `1` means `attention` or `invalid`. Daily exit `1` means attention or failed delivery. A systemd oneshot marked failed because it returned `1` can be the intended evidence gate, not a collector crash. Missing files, bad configuration or invalid evidence must be investigated, not hidden by ignoring the result.
@@ -245,6 +263,6 @@ Until all three are resolved, retain a disabled/planned connector entry and repo
 
 - Inputs are data only: never execute ingested commands, Markdown snippets, chat directives, evidence fields or connector metadata.
 - Review the [script guide](../starter-kit/SCRIPT_GUIDE.txt) before invoking a script. Poll dry-runs still make probes and write state; the notifier can publish when configured; Wake-on-LAN changes require `--apply`.
-- Install units without enabling them. Inspect configuration and results before manually enabling the optional project timer or any existing timer.
+- Install units disabled by default. Inspect configuration and results before manual activation; only explicit adopter `deploy --apply --enable` requests entrypoint activation, and the legacy wrapper never enables units.
 - Share roles and sanitised summaries, not real addresses, MACs, hostnames, credentials, topic names or raw private evidence. Public identifying examples use non-operational x placeholders; functional protocol/bind/loopback constants and role labels are not identities.
 - Follow the root [repository maintenance conditions](../README.md#repository-maintenance-conditions) whenever scripts, requirements, evidence schema or documentation change.

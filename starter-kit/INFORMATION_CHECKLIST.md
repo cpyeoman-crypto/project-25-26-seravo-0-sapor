@@ -14,7 +14,7 @@ Example: "Tell my phone when a machine on my home network goes offline, and send
 | Operating system | Pop!_OS, Debian, Windows 11, Android | Which probe and agent to use |
 | Always on, sleeps, or travels? | "sleeps", "travels" | Whether it may be woken, and how loud its alerts are |
 | MAC address | `xx:xx:xx:xx:xx:xx` (non-operational) | Identity-first lookup |
-| Mesh or VPN hostname | `my-laptop` | Fallback when it is off the LAN |
+| Mesh or VPN hostname | `x-mesh-host` (non-operational) | Fallback when it is off the LAN |
 | Probe port | 22 (SSH), 3389 (remote desktop) | The "is it alive" check |
 | Allowed to be woken? | yes/no | `wake_required` |
 | Remote access works? | yes/no/unknown | Whether heartbeats can be collected |
@@ -30,6 +30,9 @@ Example: "Tell my phone when a machine on my home network goes offline, and send
 - The always-on Linux machine that will poll. OS version. Python 3.9 or newer.
 - Can it send outbound HTTPS? (needed for ntfy)
 - Is systemd available? (`systemctl --user status`)
+- Adoption choices: kit name, unit prefix (default `fleet`), private absolute installation directory, `hub`/`client` role and node label. Check collisions with existing units/files.
+- For SSH: non-root account, reachable host and key-based authentication; independently verified host-key fingerprint and approved known-hosts record. Keep actual users, paths, hosts and fingerprints private. Do not accept unknown keys interactively.
+- Review [adoption and rollback](README.md#safe-adopter-workflow) and the [threat model](../docs/monitoring-and-protection.md#adopter-threat-model), including config ownership/permissions, notification privacy and retained private/modified files on uninstall.
 
 ## 5. Alerts
 - Which events matter: device joined or left, node down, internet down, daily summary.
