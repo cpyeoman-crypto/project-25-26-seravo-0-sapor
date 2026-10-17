@@ -27,7 +27,7 @@ Product names and categories only. Versions, configurations, hostnames and ports
 - **SSH:** key-based remote access between clients.
 
 ## Network
-- **Tailscale:** the encrypted mesh overlay that joins every client. `[REDACTED: tags, ACLs, routes, keys]`
+- **Tailscale:** the encrypted mesh overlay that joins every client (see [mesh-and-updates.md](mesh-and-updates.md)). `[REDACTED: tags, ACLs, routes, keys]`
 - **TP-Link Omada SDN:** gateway, switching and Wi-Fi management through the hardware controller. `[REDACTED: sites, VLANs, SSIDs, credentials]`
 
 ## AI stack

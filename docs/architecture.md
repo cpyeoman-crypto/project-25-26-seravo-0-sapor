@@ -17,6 +17,8 @@
 - **Isolated sandbox.** Untrusted or unknown devices live on their own network segment, away from servers and workstations.
 - **Direct link to the vault.** Logs and audits travel to the archivist over a dedicated wired link rather than the shared network.
 
+More detail, including updates and off-site machines: [mesh-and-updates.md](mesh-and-updates.md).
+
 ## One OS per job
 The fleet avoids a one-size-fits-all operating system. Linux (Pop!_OS) carries the AI compute and scheduled jobs, containers carry the secondary services, and a native Windows node is kept for Windows-only tooling. Hand-offs between platforms follow the same written rules: absolute paths, minified JSON and named roles. See [stack.md](stack.md).
 

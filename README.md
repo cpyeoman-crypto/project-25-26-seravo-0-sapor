@@ -161,6 +161,7 @@ The real build is described only by what each part does. Anything that could hel
 | [docs/controller-integration.md](docs/controller-integration.md) | Controller API, signal alignment, alert generation, mesh and hardware audits |
 | [docs/program-logic.md](docs/program-logic.md) | Daemon design, state tracking, API integrations and the AI pipeline |
 | [docs/stack.md](docs/stack.md) | Operating systems and software |
+| [docs/mesh-and-updates.md](docs/mesh-and-updates.md) | Tailscale mesh, local and off-site paths, and how every kind of update travels |
 | [docs/architecture.md](docs/architecture.md) | Data flow, memory tiers, connectivity model |
 | [docs/network-roles.md](docs/network-roles.md) | Every role and the four access tiers |
 | [docs/monitoring-and-protection.md](docs/monitoring-and-protection.md) | How the network is watched and defended |
