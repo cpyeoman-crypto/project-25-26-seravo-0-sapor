@@ -10,6 +10,9 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 - **Ingest upgrade:** moving from a watcher service to a native filter inside the chat front end.
 - **IoT onboarding:** fixing join problems on one segment.
 
+## Further integrations (idea stage)
+Details in [future-integrations.md](future-integrations.md): a second LLM (Seravo-1), voice and speech-to-text, home-automation control, media capability, a weather station, and solar and utilities monitoring.
+
 ## Planned clients
 - **Edge enforcer in line:** a Dell OptiPlex micro-PC (candidate) with dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy, mirror telemetry, a fail-closed bypass cable and audible alarms.
 - **Backup travel router with cellular hotspot:** a second travel router (TP-Link) paired with a cellular hotspot, kept as a standby uplink for when the satellite service has problems. Adds an uplink-health probe, automatic failover testing and a push report. Exact model and plan `[REDACTED]`.

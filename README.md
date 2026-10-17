@@ -165,6 +165,7 @@ The real build is described only by what each part does. Anything that could hel
 | [docs/network-roles.md](docs/network-roles.md) | Every role and the four access tiers |
 | [docs/monitoring-and-protection.md](docs/monitoring-and-protection.md) | How the network is watched and defended |
 | [docs/principles.md](docs/principles.md) | The design rules the build follows |
+| [docs/future-integrations.md](docs/future-integrations.md) | Planned: second LLM, voice, home automation, media, weather, solar and utilities |
 | [docs/roadmap.md](docs/roadmap.md) | Clients and upgrades still to come |
 | [docs/novel-and-seravo.md](docs/novel-and-seravo.md) | Where the creative project fits, and questions to explore |
 | [docs/glossary.md](docs/glossary.md) | Short definitions of the terms used here |
