@@ -17,6 +17,8 @@ flowchart LR
     S0["Seravo-0<br/>network guardian"] --- S1["Seravo-1 (planned)<br/>second LLM"]
     Voice["Voice in / voice out<br/>(planned)"] --> S0
     Voice --> Ingest["Ingest queue and archive"]
+    Voice --> Author["Author workspace<br/>(creative node, planned)"]
+    Dir["Directory service<br/>(planned)"] -. access .-> Author
     S0 --> HA["Home automation<br/>(planned)"]
     Media["Media services<br/>(planned)"] --> S0
     Weather["Weather station<br/>(planned)"] --> HA

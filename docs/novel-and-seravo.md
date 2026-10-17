@@ -8,6 +8,9 @@ This note avoids story details on purpose. It lists connections worth exploring 
 - That machine is also the high-availability backup for Seravo-0, so the creative and protective sides depend on each other.
 - The archivist role keeps the novel's versions and research notes alongside the network history.
 
+## Planned author tooling
+Voice-to-text brainstorming on the go, a continuity checker that flags plot holes against a private story bible, and directory-based access for the author workspace are described in [future-integrations.md](future-integrations.md). The story itself stays out of this repository.
+
 ## Questions to explore
 - Should Seravo-0 and the creative model share a memory store, or stay fully separate?
 - Could the network's own milestones (new client online, audit passed) become in-world events?
