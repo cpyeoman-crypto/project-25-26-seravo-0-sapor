@@ -22,12 +22,13 @@ STATE_FILE = Path(__file__).resolve().parent.parent / "state" / "fleet_status.js
 def magic_packet(mac):
     compact = resolver.normalize_mac(mac)
     if not compact:
-        raise ValueError(f"invalid MAC address: {mac!r}")
+        raise ValueError("invalid or placeholder MAC address")
     raw = bytes.fromhex(compact.replace(":", ""))
     return b"\xff" * 6 + raw * 16
 
 
 def send_magic(mac, broadcast, port=9):
+    resolver.validate_address(broadcast)
     packet = magic_packet(mac)
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)

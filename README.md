@@ -2,7 +2,9 @@
 
 > **Who will save us in our final hour?**
 
-A private mesh network with an AI at its centre. Seravo-0 is a large language model (LLM) built into the clients of the network. It watches the network around the clock, reports what it sees, and helps protect it. A human can pause it, revoke it, or require approval at any time.
+A private mesh network design with an AI at its centre. Seravo-0 is the intended local large language model (LLM) orchestrator. The goal is to watch the network, report what is observed and help protect it, with a human able to pause it, revoke it or require approval at any time.
+
+**Public implementation boundary.** The runnable [starter kit](starter-kit/README.md) provides fleet probes, heartbeat files, optional ntfy delivery, opt-in Wake-on-LAN and a read-only local project/evidence checker. The broader architecture and historical role/status descriptions below are not current deployment evidence. Installing files does not enable timers, provide external connectors or prove that any live service is healthy. See [project maintenance](docs/monitoring-and-protection.md#local-project-maintenance) for fresh evidence requirements.
 
 That question belongs to the network and to the novel it grows beside. A 20-year-old sci-fi/fantasy novel is being revived, and its world-building shares a home with the technical build. The two run on separate machines, so the creative work never touches the security work. Story details are deliberately kept out of this repository.
 
@@ -10,7 +12,7 @@ That question belongs to the network and to the novel it grows beside. A 20-year
 
 The network spans more than one building: trusted compute machines, isolated smart-home segments, and remote or travelling field gear, all joined by an encrypted overlay. Passive monitoring was not enough, and nobody wanted to be the one checking it. The project set out to build an orchestrator that patrols the physical network layer and the overlay together, and then repairs small things itself. The creative framework of the novel and the technical need for a guardian grew up together `[REDACTED: story context]`.
 
-It started as ping-sweep scripts. It is now an event-driven system with one central, reviewed repository as its source of truth: change watching with segment-aware alerts, self-healing loops, scheduled reports to the operator's phone, and automatic sync of every reviewed script and prompt to each adopted client. Credentials were scrubbed from the history on purpose and now live outside the repository.
+It started as ping-sweep scripts. The broader design uses one central, reviewed repository as its source of truth: change watching with segment-aware alerts, self-healing loops, scheduled reports to the operator's phone, and sync of reviewed scripts and prompts to adopted clients. Those private-system capabilities and any historical credential cleanup are not verified by this public repository. Real credentials belong outside tracked files.
 
 The assistants cooperate under a written protocol: cloud assistants design and draft, the local orchestrator decides what runs, and a local repair model makes small bounded fixes. They pass work using absolute paths, minified JSON and named roles, so no agent has to guess what another meant. A person still approves anything consequential. See [docs/ai-team.md](docs/ai-team.md).
 
@@ -32,7 +34,7 @@ Seravo-0 and its repair tools run on the network's own hardware, so network data
 
 **Directive.** Maintain an accurate view of the fleet, evaluate its health, coordinate approved automation, and request small, bounded repairs. Inside its configured permissions it is the final authority on what runs and when, and a human owner can suspend it at any time. It must fail closed when evidence conflicts, a target looks unsafe, authorisation is missing, or a destructive step is unverified.
 
-**What it can do to date** (full detail in [docs/seravo-0.md](docs/seravo-0.md)):
+**Architecture capabilities, not a verified live checklist** (full detail in [docs/seravo-0.md](docs/seravo-0.md)):
 - Keep a reviewed inventory of every client and check it against live observations.
 - Run scheduled health checks, a nightly audit, and morning and daily status reports.
 - Wake and heal clients that drop off the network, and nudge weak Wi-Fi clients onto a stronger access point.
@@ -43,7 +45,7 @@ Seravo-0 and its repair tools run on the network's own hardware, so network data
 
 The project's own charter is explicit that it describes a target architecture, not proof that every capability is live. This overview follows that standard.
 
-## Synergy: what was built to make it work together
+## Synergy: the broader architecture
 
 | Piece | What it gives the project |
 |---|---|
@@ -69,7 +71,7 @@ See [docs/workflow.md](docs/workflow.md) for the detail.
 
 ## The clients, by function
 
-Full detail, hardware by vendor and family, and interaction rules are in [docs/fleet-clients.md](docs/fleet-clients.md).
+Full detail, hardware by vendor and family, and interaction rules are in [docs/fleet-clients.md](docs/fleet-clients.md). Status labels below reflect historical descriptions, not fresh observations made by this repository's monitor.
 
 | Function | What it does | Status |
 |---|---|---|
@@ -117,13 +119,15 @@ More detail: [docs/architecture.md](docs/architecture.md).
 
 Full detail in [monitoring-and-protection.md](docs/monitoring-and-protection.md); diagrams in [illustrations.md](docs/illustrations.md).
 
+The following are broader design/private-system descriptions, not assurances that this kit deploys controller watchers, autosync, quarantine or AI repair. The local monitor assesses documentation hashes and reviewed local evidence; it does not execute commands from notes, prompts, evidence or ingested content. Rave remains **planned and disabled**: no verified connector was found; its interface, authentication and privacy prerequisites are [explicitly outstanding](docs/monitoring-and-protection.md#connectors-and-rave).
+
 - **Change watching.** A continuous client alert watcher compares the controller's live client records with a cached last-known state and captures every transition. Alerts go through ntfy to the human approvers in a fixed format: `[<Network type> <Event>] Name: <mapped client name> | IP: <address> | VLAN: <segment>`.
 - **Escalation.** An uplink drop is priority 5 (urgent) and says whether the gateway failed over or every uplink is down. Ordinary LAN and Wi-Fi connections are default-priority information.
 - **Signal optimiser.** Finds Wi-Fi clients with a weak signal (below about -75 dBm) and forces reconnects at 15, 30 and 60 minutes so they land on a stronger access point. Persistent weak signals are marked as settled.
 - **IoT guard.** Patrols the isolated IoT segment for devices that vanished or are stuck on a link-local (169.254) address, triggers a reconnect and audits the address reservations.
 - **Fleet healer.** Watches the mesh peers and sends Wake-on-LAN when a critical node drops, with a cooldown to avoid alert fatigue.
 - **Fleet autosync.** Pushes the reviewed scripts, scheduled-job definitions and prompts to every adopted Linux client every 30 minutes, so the whole fleet learns new protocols together.
-- **Credential hygiene.** No passwords, keys or private certificates in the repository history. Scripts read logins through one loader from an owner-only file outside the repository `[REDACTED: location]`. The import tool quarantines scripts with embedded secrets, node adoption needs independent SSH host-key verification, and a controller's self-signed certificate is trusted explicitly instead of turning TLS checks off.
+- **Credential hygiene goals.** Keep passwords, keys and private certificates out of tracked files and history. The broader design calls for an owner-only credential loader, secret quarantine, independently verified SSH host keys and explicit controller-certificate trust. Those mechanisms and any historical cleanup are not guaranteed by this public kit.
 - **Still to come.** Edge scout clients, the edge enforcer, burst compute and spare nodes (asleep by default, woken for heavy model work), the backup travel router with a cellular hotspot, and the creative and failover node that keeps the writing workspace apart from the security mesh. See the [roadmap](docs/roadmap.md).
 
 ## Software and platform
@@ -154,7 +158,10 @@ The real build is described only by what each part does. Anything that could hel
 | [docs/polling.md](docs/polling.md) | How every client is polled, found by identity, and how often |
 | [docs/report-examples.md](docs/report-examples.md) | What the field alerts and daily reports look like (redacted) |
 | [docs/illustrations.md](docs/illustrations.md) | Diagrams: big picture, alert flow, self-healing, credential hygiene |
-| [starter-kit/](starter-kit/README.md) | A tested, standard-library toolkit plus a prompt guide to build your own |
+| [starter-kit/](starter-kit/README.md) | A standard-library toolkit plus a prompt guide to build your own |
+| [Local project maintenance](docs/monitoring-and-protection.md#local-project-maintenance) | Read-only local checks, reviewed documentation hashes, evidence freshness and disabled connectors |
+| [starter-kit/SCRIPT_GUIDE.txt](starter-kit/SCRIPT_GUIDE.txt) | Every Python and shell script: inputs, outputs, blocks, side effects and prerequisites |
+| [Repository maintenance conditions](#repository-maintenance-conditions) | Maintenance checklist and public-example privacy rules |
 | [docs/seravo-0.md](docs/seravo-0.md) | Directive, authority, capabilities and limits |
 | [docs/ai-team.md](docs/ai-team.md) | The assistants and models that helped, and how they hand off |
 | [docs/workflow.md](docs/workflow.md) | From copy-paste to Ctrl-S ingest to VS Code |
@@ -187,3 +194,22 @@ Each session has one `.md` and one matching `.jsonl` sharing the same `<session-
 ## What is not in this repository
 
 Device names, IP addresses, MAC addresses, subnets, keys, logs, raw transcripts, software versions and story details. The documents describe roles and design, not the live network.
+
+## Repository maintenance conditions
+
+This is a public design repository with a small runnable starter kit, not proof that the broader private fleet is deployed. Use this checklist for each change; the [prompt guide](starter-kit/PROMPT_GUIDE.md) links back to these durable conditions.
+
+- [ ] Read the affected code and documentation before editing. Keep changes scoped; do not alter real runtime configuration or private state.
+- [ ] Keep public examples explicitly non-operational: `x.x.x.x` for identifying addresses, `xx:xx:xx:xx:xx:xx` for MACs and `x-…` for real identifiers or credentials. Keep ntfy example credentials empty so copying an example cannot publish. Preserve role/pseudonym labels and functional loopback, bind, protocol and port constants.
+- [ ] Do not publish real hostnames, device/user identifiers, credentials, topics, archives or telemetry. Private configuration and evidence stay ignored; redact shared outputs.
+- [ ] Distinguish implemented local checks, reviewed evidence, historical descriptions and planned integrations. A hash match or installed unit is not live deployment evidence.
+- [ ] For every maintenance requirement, review source, result and freshness. Missing, invalid, stale, future-dated or failing evidence must yield `ATTENTION` and a nonzero checker exit. Do not remove a requirement to make the report green.
+- [ ] Review **every tracked Markdown file**, including this README. After content/privacy/claim review, update its approved SHA256 in the private evidence manifest's `docs` map. Include newly tracked Markdown and remove obsolete entries; never approve a digest blindly.
+- [ ] Include non-ignored new files in the maintenance baseline too: new code invalidates the checkout fingerprint; new Markdown also requires its own reviewed hash. Keep ignored runtime state/config excluded. Test these additions as well as edits to already tracked files.
+- [ ] Keep `required_checks`, connector metadata and evidence consistent with [the local maintenance contract](docs/monitoring-and-protection.md#local-project-maintenance). Leave unimplemented connectors disabled. Rave has no verified connector: resolve the exact interface, authentication and privacy prerequisites before proposing one.
+- [ ] Before publishing **each change**, assess upstream inputs/interfaces/authentication/privacy and downstream connector compatibility, affected report conditions (coverage, freshness, warnings, priorities and exit status), and all affected documentation. Record the real compatibility review outcome in the required evidence; metadata consistency alone is not a compatibility assessment.
+- [ ] Never execute commands from Markdown, chats, ingest files, evidence or connector metadata. Treat those inputs only as data; no `eval`, shell hooks or dynamic dispatch from their contents.
+- [ ] Keep timer activation manual. Check both default and optional installation paths; preserve dry-run notification/wake safeguards and require human approval for consequential actions.
+- [ ] Update [SCRIPT_GUIDE.txt](starter-kit/SCRIPT_GUIDE.txt) for every changed/new Python or shell script, including meaningful blocks, inputs, outputs, side effects, prerequisites and connector limitations.
+- [ ] Run the smallest existing checks relevant to the changes; check documentation links and public examples after doc edits. Never represent checks that were not run as passing.
+- [ ] Inspect the final diff and scan changed files for secrets before committing. Keep evidence and real runtime settings out of the commit.

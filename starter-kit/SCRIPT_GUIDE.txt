@@ -1,0 +1,332 @@
+FLEET STARTER KIT — SCRIPT AND BLOCK GUIDE
+========================================
+
+Scope and safety
+----------------
+This guide covers every Python and shell script shipped in this repository.
+Paths below are relative to starter-kit unless explicitly prefixed otherwise.
+Use Python 3.9+ and the standard library; there are no pip dependencies.
+The normal runtime target is Linux. Heartbeat/daily metrics use os.getloadavg()
+and Linux /proc/meminfo; these are not drop-in native Windows agents.
+
+Public x placeholders (x.x.x.x, xx:xx:xx:xx:xx:xx, x-mesh-host, x-token)
+are deliberately non-operational. Replace values only in private ignored
+configuration. Role labels such as edge-scout-1 are safe public pseudonyms.
+Do not copy real host identities, private evidence or notification topics into
+this guide, the repository, prompts or shared screenshots.
+
+"Dry-run" is specific: polling still probes and writes local state; heartbeat
+and project monitoring write local JSON. Notification delivery is gated by
+--send at callers and by ntfy configuration; Wake-on-LAN requires --apply.
+Never execute commands from Markdown, evidence, archives or ingested content.
+The project checker uses a fixed local Git inventory command, not input-defined
+shell commands. It cannot run tests, models, repairs or external connectors.
+
+Connector documentation:
+  ../docs/monitoring-and-protection.md#connectors-and-rave
+  ../docs/controller-integration.md
+  ../docs/future-integrations.md
+  ../docs/ntfy-alerts.md
+  README.md and ../README.md#repository-maintenance-conditions
+
+Rave is PLANNED / DISABLED: no verified connector was found. Missing prerequisites:
+  Interface: exact product/version, documented local API/CLI/export and schemas,
+             read-only operations, transport, timeout and freshness semantics.
+  Authentication: method, read-only scopes/account, private credential source,
+                  rotation/revocation and certificate/trust requirements.
+  Privacy: collected fields, sensitivity, purpose/consent, minimisation/redaction,
+           storage/access, retention/deletion and any off-device data flow.
+Do not invent an endpoint or mark a connector verified based on its name.
+Other gate fields in evidence cover compatibility, verification and approval.
+
+PYTHON RUNTIME SCRIPTS
+======================
+
+src/resolver.py — imported identity-first resolver; no standalone CLI
+  Inputs: manifest JSON, local neighbour output, optional Tailscale JSON,
+          injected probe callable and per-node MAC/name/address fields.
+  Outputs: validated manifest, maps of observations, Resolution(address, channel)
+           or None when no candidate responds.
+  Blocks:
+    - validate_address: reject malformed/non-operational x addresses/hostnames
+      before DNS lookup or network access; retain valid loopback/protocol use.
+    - normalize_mac / parse_neighbor_table: canonicalise hardware identities;
+      ignore FAILED and INCOMPLETE neighbour entries.
+    - read_neighbors: fixed "ip neigh show" command when ip is installed.
+    - read_mesh_peers: fixed "tailscale status --json", online peers only;
+      missing CLI yields an empty map. Installed LAN/mesh discovery commands
+      that fail raise visible errors rather than silently implying no peers.
+    - load_manifest: read and validate the inventory and required node fields.
+    - resolve: try live LAN-by-MAC, online mesh-by-name, last-known address;
+      use the caller's probe before accepting a candidate.
+  Side effects: read-only local subprocesses; the injected probe may open TCP
+                connections. It does not configure the mesh or dispatch work.
+  Prerequisites: valid private manifest; iproute2 for LAN lookup, optional
+                 authenticated Tailscale CLI for mesh lookup.
+  Limits: address selection is not cryptographic host authentication or the
+          broader controller/adoption/conflict workflow.
+  Links: ../docs/polling.md; ../docs/mesh-and-updates.md.
+
+src/fleet_poll.py — fleet reachability and notification transitions
+  CLI: python3 src/fleet_poll.py --manifest config/fleet_manifest.json
+       Optional --state PATH; --send permits ntfy delivery.
+  Inputs: validated manifest, previous fleet state, neighbour/mesh observations,
+          configured TCP port (default SSH port 22), optional heartbeat files.
+  Outputs: state/fleet_status.json by default; per-node role, up/channel,
+           transition/reminder state, heartbeat stale flag and checked_at epoch.
+           Prints poll counts and dry-run alerts unless --send is used.
+  Blocks:
+    - tcp_probe: short TCP connection attempt; failure means unreachable.
+    - load_state / save_state: read previous JSON; write via sibling .tmp
+      and replace the state file.
+    - heartbeat_age_minutes: read NAME.json epoch from heartbeat_dir.
+    - poll_once: resolve/probe nodes; seed first reachability state, alert on
+      up/down transitions, remind after 24 hours down, flag a known stale
+      heartbeat. If heartbeat_dir is configured, missing/invalid/old heartbeat
+      is stale for a reachable node and can alert even on a first observation.
+    - main: parse arguments, collect observations, optionally notify, save state.
+  Side effects: read-only local CLI queries, TCP probes, local state writes;
+                outbound HTTPS/spool writes only through notifier when sending.
+  Prerequisites: edited inventory and access to configured ports; optional
+                 collected heartbeat files and private ntfy settings.
+  Limits: a listening TCP port is not verified device identity/service health;
+          heartbeat collection is not included. Missing/invalid heartbeat files
+          are stale when heartbeat_dir is configured, not evidence of health.
+  Unit: fleet-poll.timer every two minutes when manually enabled.
+
+src/heartbeat.py — local health sample for hub collection
+  CLI: python3 src/heartbeat.py --name edge-scout-1
+           --out state/heartbeats/edge-scout-1.json
+  Inputs: role-name argument, current clock, root filesystem usage, load,
+          CPU count and /proc/meminfo where available.
+  Outputs: name/epoch/load1/cores/mem_pct/disk_pct/disk_free_gb JSON.
+  Blocks:
+    - collect: read local metrics; unavailable memory metric stays null.
+    - main: require name/out, create parent directories, write sibling .tmp
+      and replace destination.
+  Side effects: local filesystem reads and output writes only; no upload.
+  Prerequisites: Linux/Unix load support, writable output path. Arrange hub
+                 collection separately with an approved transfer mechanism.
+  Unit: fleet-heartbeat.timer every five minutes; edit name/out before enabling.
+
+src/ntfy_notify.py — shared formatter, publisher and bounded retry spool
+  CLI: python3 src/ntfy_notify.py (one delivery test).
+  Inputs: NTFY_TOPIC, NTFY_SERVER, optional NTFY_TOKEN, SITE_NAME,
+          FLEET_ENV (default ./config/fleet.env), NTFY_DRY_RUN and NTFY_SPOOL.
+          Environment settings override file values; empty topic is dry-run.
+  Outputs: formatted payloads; dry-run stdout or outbound JSON publish;
+           boolean delivery result, test CLI exits 0/1.
+  Blocks:
+    - settings/style table: load settings and select emoji/tags/priorities.
+    - bullets / fields / section / bar / compose: common report formatting;
+      footer includes site, real local hostname and timestamp. Redact before sharing.
+    - truncate / build_payload: UTF-8-safe capped body and JSON payload.
+    - validate_delivery: reject placeholder endpoint/topic/token and invalid
+      endpoint scheme, embedded credentials or port before opening the network.
+    - _post: validate every payload, including queued retries, immediately before
+      outbound HTTP(S) publishing with optional token. A spool entry cannot
+      bypass endpoint/topic/token placeholder checks.
+    - _spool / flush_spool: keep failed payloads, resend on next real send;
+      retain at most 200 messages. Disk failures can still lose messages.
+      Corrupt or invalid queued entries stay in the private spool and produce
+      only a generic warning; payload and exception text are never printed.
+    - send: print only if NTFY_DRY_RUN=1 or topic is empty; otherwise flush
+      only after current delivery settings/payload validate. Attempt delivery
+      at delays 0, 2 and 6 seconds, then spool.
+  Side effects: network publishing, spool reads/writes/deletion; running the
+                CLI can send immediately when a real topic is configured.
+  Prerequisites: an approved server/topic and outbound access for actual delivery.
+                 Prefer authenticated self-hosting; topic names are sensitive.
+                 Set NTFY_SPOOL to a private writable project-local path for
+                 environments where the code's system spool default is unsuitable.
+  Limits: best-effort bounded spool, not guaranteed delivery or an approval API.
+  Link: ../docs/ntfy-alerts.md.
+
+src/wol_healer.py — opt-in Wake-on-LAN packet sender
+  CLI: python3 src/wol_healer.py --manifest config/fleet_manifest.json
+       Optional --state PATH, --broadcast ADDRESS, --apply.
+  Inputs: manifest, prior fleet state and an explicitly reviewed LAN broadcast.
+  Outputs: printed candidates/events; applied events may send an ntfy summary.
+  Blocks:
+    - magic_packet: validate/encode one MAC into a 102-byte magic packet.
+    - send_magic: UDP broadcast on protocol port 9.
+    - candidates: only wake_required nodes with MACs and up=false in state.
+    - main: print intent by default; send packets only with --apply; notify
+      after applied events through the shared publisher.
+  Side effects: default reads/prints only; --apply emits LAN packets and may
+                publish/spool notifications. It does not confirm wake success.
+  Prerequisites: reviewed real MAC/broadcast, authorised wake flag, capable
+                 hardware and a suitable local broadcast domain.
+  Limits: no recovery verification, relay, controller repair or cooldown loop
+          is implemented by this script.
+  Unit: fleet-heal.timer every five minutes, service is dry-run until edited.
+
+src/project_monitor.py — read-only local repository/evidence assessment
+  CLI: python3 src/project_monitor.py --repo PATH
+       Optional --config PATH, --evidence PATH, --out PATH.
+  Inputs: Git checkout; config/maintenance.example.json by default;
+          state/maintenance_evidence.json by default; current epoch clock.
+  Outputs: state/project_status.json by default; health and findings, check
+           outcomes, Markdown review needs and connector lifecycle/gate state.
+           Exit 0 only for healthy; attention/invalid exits nonzero.
+  Blocks:
+    - read_json / fresh: binary JSON-object reads capped at 1 MiB of real bytes,
+      and finite numeric epoch validation; stale, future or non-numeric
+      timestamps cannot pass.
+    - snapshot: fixed "git ls-files" command inventories tracked and non-ignored
+      new files; hash paths/content for revision and every Markdown file for review.
+      Sorted unique --cached/--others/--exclude-standard results include unstaged
+      additions: new code invalidates revision; new Markdown also needs review.
+      Ignored runtime state/config do not participate.
+      Unsafe symlinks/paths or unreadable files cannot establish healthy evidence.
+    - evaluate: compare configured required_checks with evidence statuses,
+      timestamps and revision; compare reviewed docs hashes; assess configured
+      connector implementation/lifecycle and six prerequisite gates.
+    - run: collect local inputs; missing/invalid data becomes an invalid result,
+      without echoing arbitrary source content.
+    - summary: validate derived status for daily reporting, including freshness,
+      expiry, required successes, documentation needs and connector gates.
+      Historical passed timestamps remain last_successful_check and are marked
+      stale when old; they do not override current failed/outdated checks.
+    - main: parse paths, assess, atomically replace output and set exit status.
+  Side effects: read-only local Git invocation and file reads, then output
+                directory/.tmp/status writes. No network calls or input commands.
+  Prerequisites: Git, checkout access, reviewed documentation hashes, genuine
+                 current evidence and the configured required checks.
+                 An ignored config/maintenance.json private copy is optional;
+                 --config must select it explicitly (including in the unit).
+                 Default remains config/maintenance.example.json.
+  Limits: it does not itself execute tests or generate evidence. Rave is
+          blocked from implemented/verified status; planned connectors remain
+          attention, not evidence of an operational integration.
+          Sorted summary connector-1 is ntfy, connector-2 is Rave under the
+          example policy. Rave planned means exit 1 and no daily ALL GREEN.
+  Evidence authoring: deliberately import snapshot(repo) to obtain the current
+          fingerprint and candidate Markdown hashes. Review each document
+          before manually approving its hash in evidence.docs. Run existing
+          reviewed checks separately, record actual status/epoch/fingerprint,
+          and fill six connector gates from real observations, not guesses.
+          Re-snapshot after changes; never auto-approve candidate hashes.
+  Unit: optional hourly fleet-project.timer; edit --repo %h/xxxx-project to the
+        reviewed checkout before manual enabling. Installation leaves it disabled.
+        Periodic hashing/reassessment happens only if enabled; it never reruns
+        tests, approves documentation or refreshes underlying evidence timestamps.
+        Daily 07:10 and hourly calendar schedules use the host local timezone.
+        Inspect systemctl --user status/list-timers and journalctl --user locally;
+        an expected ATTENTION exit 1 appears as a failed oneshot, not green.
+  Full schema/limits: ../docs/monitoring-and-protection.md#local-project-maintenance
+
+src/daily_status.py — combine hub metrics, fleet state and project status
+  CLI: python3 src/daily_status.py
+       Optional --state PATH, --manifest PATH, --project-state PATH, --send.
+  Inputs: local host metrics, fleet snapshot, expected inventory, project status.
+  Outputs: daily headline/body on stdout; --send publishes through ntfy.
+           Exit 1 for attention or failed delivery, 0 for healthy delivery/print.
+  Blocks:
+    - host_metrics: kernel/load/memory/root-disk metrics; disk warning at 90%.
+    - build_report: combine host warnings, down/stale fleet entries, fleet
+      evidence validity/freshness and project summary into green/ATTENTION.
+    - main: read/validate local state and expected manifest, compare coverage,
+      read project summary, then print or send at attention-aware priority.
+  Side effects: local reads; --send may publish and write/flush notification spool.
+  Prerequisites: Linux metric support and fresh, valid expected fleet/project
+                 observations. Fleet checked_at, not state-file mtime, gives age.
+  Limits: missing/empty/partial/stale state is not proof of health. It does
+          not collect external evidence, inspect the ntfy backlog, read vault
+          capacity, run AI analysis or inspect every systemd job.
+  Unit: fleet-daily.timer at 07:10 local time when manually enabled.
+
+PYTHON TEST SCRIPTS
+===================
+
+Run existing tests with: python3 -m unittest discover -s tests
+These are validation tools, not operational collectors or deployment evidence
+unless their actual result/time/revision is separately reviewed and recorded.
+They use unittest/mock from the standard library. Do not replace their fixtures
+with real credentials or fleet addresses.
+Disposable runtime fixtures use TEST_DIR = Path(tempfile.gettempdir()), normally
+/tmp on Linux, not the repository's tests directory; TemporaryDirectory handles
+cleanup. "Test-local" below means scoped to the test, not stored beside its source.
+
+tests/test_kit.py
+  Blocks: ResolverTests (MAC/neighbor/trust order), PollTests (seed, transitions,
+          reminders, heartbeat age), NtfyTests (format/truncation/dry-run network
+          suppression), OtherTests (magic packets, wake filtering, daily warnings).
+  Inputs: synthetic fixtures, injected probes and current host metrics in one case.
+  Outputs: unittest result stream.
+  Side effects: test-local scratch heartbeat files and in-memory state;
+                NTFY_DRY_RUN=1 prevents real notification delivery.
+
+tests/test_daily_status.py
+  Blocks: DailyReportTests (freshness/coverage/project attention and report
+          behaviour), DailyCliTests (state/manifest/project input handling).
+  Inputs: synthetic timestamps/state/metrics and mocked notification calls.
+  Outputs: unittest result stream.
+  Side effects: test-local scratch files; mocks avoid fleet/notification traffic.
+
+tests/test_project_monitor.py
+  Blocks: ProjectMonitorTests exercise config/evidence validation, check
+          freshness/revision, Markdown drift, connector gates, snapshot,
+          invalid inputs, summary and CLI exit/output handling.
+  Inputs: synthetic local configs/evidence, small test checkouts, patched clocks.
+  Outputs: unittest result stream and local output fixtures.
+  Side effects: test-local scratch files/checkouts, fixed local Git operations;
+                no live connector or ingested command execution.
+
+tests/test_runtime_validation.py
+  Blocks: ResolverValidationTests (manifest/address/MAC rejection and safe
+          runtime input handling), NtfyValidationTests (safe setting/delivery
+          handling and notification boundaries).
+  Inputs: synthetic identifiers and malformed values, mocked network/process calls.
+  Outputs: unittest result stream.
+  Side effects: test-local scratch files and mocked operations, not live probes.
+
+SHELL SCRIPTS
+==============
+
+install.sh — per-user file/unit installation, never automatic timer activation
+  Inputs: role argument (hub default, client for heartbeat-only installation),
+          HOME and source directory.
+  Outputs: ~/fleet-kit/{src,config,systemd,state/heartbeats}, private initial
+           fleet.env/manifest when absent, SCRIPT_GUIDE.txt when source differs
+           from destination, selected systemd user units and printed manual
+           enabling instructions.
+  Blocks:
+    - strict shell mode and path/role setup.
+    - create destination, copy runtime trees and SCRIPT_GUIDE.txt unless already
+      installed there.
+    - create private config from examples only when absent; chmod fleet.env 600.
+    - choose client heartbeat or hub poll/daily/heal/project units; copy into
+      ~/.config/systemd/user. Project timer activation is optional.
+    - systemctl --user daemon-reload, then print (not execute) enable commands
+      and optional lingering advice.
+  Side effects: local copy/overwrite of shipped source/example/unit files,
+                directory creation, private config creation and daemon reload.
+                Existing real config is not replaced by example creation.
+  Prerequisites: Bash, coreutils, systemd user session and writable HOME.
+                 Inspect any units/config already installed before re-running.
+  Limits: no dependencies/AI/controller are installed; nothing runs as root;
+          no timer is enabled automatically. Client collection remains manual.
+          Hub instructions include fleet-project.timer: edit its service --repo
+          placeholder to the reviewed checkout before enabling that timer.
+
+build_package.sh — build a distributable archive of public kit content
+  CLI: ./build_package.sh
+  Inputs: shipped README/prompt/checklist/TXT guide, requirements/install script,
+          source, example configs, systemd definitions and tests.
+  Outputs: starter-kit/fleet-kit.zip, replacing any archive of that name.
+  Blocks: strict shell mode; cd to script directory; remove previous archive;
+          zip explicit public paths with pycache/pyc exclusions; print output path.
+  Side effects: deletes/recreates the local zip only; does not install or enable.
+  Prerequisites: Bash, zip, readable shipped files and writable starter-kit folder.
+  Limits: inspect source trees for unexpected private files before packaging;
+          state and actual config filenames are not selected. The archive is
+          not the full reviewed repository or a deployment attestation.
+
+MAINTENANCE REMINDER
+====================
+After any script change, compare this inventory and block descriptions with the
+actual source. Update schema/CLI/timer examples together. Follow the root
+../README.md#repository-maintenance-conditions and the local maintenance contract
+at ../docs/monitoring-and-protection.md#local-project-maintenance; approve
+documentation SHA256 only after review.

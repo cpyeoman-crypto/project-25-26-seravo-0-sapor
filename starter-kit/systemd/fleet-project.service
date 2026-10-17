@@ -1,0 +1,8 @@
+[Unit]
+Description=Check local Seravo-0 maintenance evidence
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/fleet-kit
+# Set --repo to your reviewed checkout, not the installed kit copy.
+ExecStart=/usr/bin/python3 src/project_monitor.py --repo %h/xxxx-project

@@ -1,5 +1,7 @@
 # Architecture
 
+**Target architecture, not deployment evidence.** The public [starter kit](../starter-kit/README.md) implements a smaller local/fleet subset. Its [project monitor](monitoring-and-protection.md#local-project-maintenance) checks local files and reviewed evidence; it does not deploy or directly observe the layers below.
+
 ## Layers
 
 | Layer | Purpose | Roles involved |
@@ -32,8 +34,8 @@ The fleet avoids a one-size-fits-all operating system. Linux (Pop!_OS) carries t
 
 ## Telemetry rhythm
 
-- **Heartbeat:** a simple weekly ping from each client confirms it is alive.
-- **Spark telemetry:** a planned five-minute thermal and health report in a lightweight JSON format.
+- **Starter-kit heartbeat:** a local JSON health file written every five minutes when its user timer is enabled. Hub collection is configured separately; it is not a weekly ping.
+- **Spark telemetry:** broader thermal telemetry is planned, beyond the kit's load, memory and disk metrics.
 - **Watchdog:** a planned local job that restarts a client's tunnel and flushes firewall rules if connectivity drops.
 
 ## Models

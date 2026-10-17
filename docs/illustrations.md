@@ -2,6 +2,8 @@
 
 Diagrams only show roles and flows. Names, addresses, schedules in exact form and file paths are `[REDACTED]`. The diagrams render on GitHub.
 
+**Architecture illustrations, not proof of deployment.** Controller watchers, relayed healing, autosync, ingest and AI repair are not included in the public kit. See the [script guide](../starter-kit/SCRIPT_GUIDE.txt) for implemented behaviour and [project maintenance](monitoring-and-protection.md#local-project-maintenance) for local evidence checks.
+
 ## 1. The big picture
 
 ```mermaid

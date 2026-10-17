@@ -12,6 +12,7 @@ SRC="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p "$DEST"
 if [ "$SRC" != "$DEST" ]; then
   cp -r "$SRC"/src "$SRC"/config "$SRC"/systemd "$DEST"/
+  cp "$SRC/SCRIPT_GUIDE.txt" "$DEST/"
 fi
 mkdir -p "$DEST/state/heartbeats"
 
@@ -30,7 +31,7 @@ mkdir -p "$UNITS"
 if [ "$ROLE" = "client" ]; then
   names=(fleet-heartbeat)
 else
-  names=(fleet-poll fleet-daily fleet-heal)
+  names=(fleet-poll fleet-daily fleet-heal fleet-project)
 fi
 for n in "${names[@]}"; do
   cp "$DEST/systemd/$n.service" "$DEST/systemd/$n.timer" "$UNITS/"

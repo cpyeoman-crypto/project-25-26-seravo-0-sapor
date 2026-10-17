@@ -2,6 +2,8 @@
 
 How the software is put together. Product and protocol names only: script names, file names, endpoints, credentials and addresses are `[REDACTED]`.
 
+**Scope:** sections below describe the broader architecture, including private/planned components not shipped here. The public implementation is the [starter kit](../starter-kit/README.md), whose complete script inventory is in [SCRIPT_GUIDE.txt](../starter-kit/SCRIPT_GUIDE.txt). Its [project monitor](monitoring-and-protection.md#local-project-maintenance) is a read-only local repository/evidence checker, not an AI dispatcher or an external connector.
+
 ## 1. Core logic: small daemons, tracked state
 
 The system is a set of small, single-purpose Python programs rather than one large application.
@@ -25,6 +27,8 @@ A runnable, simplified version of the same pattern is in the [starter kit](../st
 | **Windows-native queries** | A PowerShell agent on the Windows hub reports health and relays switch mirror-port data. |
 
 Together they cover the physical network, the overlay and the clients. Any gap between them (a device on the network but not on the overlay, for example) is itself reported. "Complete visibility" is the aim, and the reports list what is not yet covered.
+
+These sources are integration targets, not proof of coverage. The public kit directly reads the local neighbour table and optional Tailscale peer output, probes configured TCP ports and optionally publishes ntfy messages. Controller and Windows agents are not included. Rave is planned/disabled pending the [interface, authentication and privacy prerequisites](monitoring-and-protection.md#connectors-and-rave).
 
 ## 3. The AI pipeline
 

@@ -4,6 +4,8 @@ The fleet lives on two kinds of path: the **local network** at home, and an **en
 
 Status labels: **Active** means in use. **Planned**, **Idea** and **Open** mean not confirmed or not built.
 
+These labels describe historical/private-system reports, not a fresh live audit. The public kit only reads optional Tailscale CLI state and probes configured ports; it does not configure routes, enforce ACLs or distribute updates. The [project monitor](monitoring-and-protection.md#local-project-maintenance) checks local evidence, not the mesh itself.
+
 ## The idea in one picture
 
 ```mermaid

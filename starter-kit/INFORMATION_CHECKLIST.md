@@ -1,6 +1,6 @@
 # Information checklist
 
-Gather these before you prompt an AI assistant. Keep the answers in a private note. **Never paste passwords, keys, tokens or your real ntfy topic into a chat.** Replace them with placeholders such as `<TOPIC>` and add the real value yourself afterwards.
+Gather these before you prompt an AI assistant. Keep the answers in a private note. **Never paste passwords, keys, tokens or your real ntfy topic into a chat.** Use explicitly non-operational placeholders such as `x-topic`, `x-token`, `x.x.x.x` and `xx:xx:xx:xx:xx:xx`; add real values only to ignored private configuration. Role labels such as `edge-scout-1` are public pseudonyms, not real host identities.
 
 ## 1. Your goal, in one sentence
 Example: "Tell my phone when a machine on my home network goes offline, and send me one summary each morning."
@@ -13,7 +13,7 @@ Example: "Tell my phone when a machine on my home network goes offline, and send
 | Role | "Edge scout", "Windows hub", "AI box" | Reports, so they read by function |
 | Operating system | Pop!_OS, Debian, Windows 11, Android | Which probe and agent to use |
 | Always on, sleeps, or travels? | "sleeps", "travels" | Whether it may be woken, and how loud its alerts are |
-| MAC address | `aa:bb:cc:dd:ee:ff` | Identity-first lookup |
+| MAC address | `xx:xx:xx:xx:xx:xx` (non-operational) | Identity-first lookup |
 | Mesh or VPN hostname | `my-laptop` | Fallback when it is off the LAN |
 | Probe port | 22 (SSH), 3389 (remote desktop) | The "is it alive" check |
 | Allowed to be woken? | yes/no | `wake_required` |
