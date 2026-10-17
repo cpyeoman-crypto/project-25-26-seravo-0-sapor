@@ -105,6 +105,19 @@ flowchart LR
 
 More detail: [docs/architecture.md](docs/architecture.md).
 
+## Alerting, self-healing and credential hygiene
+
+Full detail in [monitoring-and-protection.md](docs/monitoring-and-protection.md); diagrams in [illustrations.md](docs/illustrations.md).
+
+- **Change watching.** A continuous client alert watcher compares the controller's live client records with a cached last-known state and captures every transition. Alerts go through ntfy to the human approvers in a fixed format: `[<Network type> <Event>] Name: <mapped client name> | IP: <address> | VLAN: <segment>`.
+- **Escalation.** An uplink drop is priority 5 (urgent) and says whether the gateway failed over or every uplink is down. Ordinary LAN and Wi-Fi connections are default-priority information.
+- **Signal optimiser.** Finds Wi-Fi clients with a weak signal (below about -75 dBm) and forces reconnects at 15, 30 and 60 minutes so they land on a stronger access point. Persistent weak signals are marked as settled.
+- **IoT guard.** Patrols the isolated IoT segment for devices that vanished or are stuck on a link-local (169.254) address, triggers a reconnect and audits the address reservations.
+- **Fleet healer.** Watches the mesh peers and sends Wake-on-LAN when a critical node drops, with a cooldown to avoid alert fatigue.
+- **Fleet autosync.** Pushes the reviewed scripts, scheduled-job definitions and prompts to every adopted Linux client every 30 minutes, so the whole fleet learns new protocols together.
+- **Credential hygiene.** No passwords, keys or private certificates in the repository history. Scripts read logins through one loader from an owner-only file outside the repository `[REDACTED: location]`. The import tool quarantines scripts with embedded secrets, node adoption needs independent SSH host-key verification, and a controller's self-signed certificate is trusted explicitly instead of turning TLS checks off.
+- **Still to come.** Edge scout clients, the edge enforcer, burst compute and spare nodes (asleep by default, woken for heavy model work), the backup travel router with a cellular hotspot, and the creative and failover node that keeps the writing workspace apart from the security mesh. See the [roadmap](docs/roadmap.md).
+
 ## Software and platform
 
 Linux throughout the core, with a Windows hub. Network hardware is TP-Link Omada; the machines are mostly Dell. Full list in [docs/stack.md](docs/stack.md).
