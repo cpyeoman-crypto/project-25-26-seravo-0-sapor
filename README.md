@@ -1,24 +1,40 @@
 # Project 25/26 Seravo-0 / Sapor
 
-> A private mesh network with an AI at its centre.
+> **Who will save us in our final hour?**
 
-Seravo-0 is a large language model (LLM) built into the clients of a private mesh network. It watches the network around the clock, reports what it sees, and helps protect it. It never acts alone on anything important: a human approves or denies its actions from a phone.
+A private mesh network with an AI at its centre. Seravo-0 is a large language model (LLM) built into the clients of the network. It watches the network around the clock, reports what it sees, and helps protect it. It never acts alone on anything important: a human approves or denies its actions from a phone.
 
-Beside the network sits a creative project. A 20-year-old sci-fi/fantasy novel is being revived, and its world-building shares a home with the technical build. The two run on separate machines, so the creative work never touches the security work. Story details are deliberately kept out of this repository.
+That question belongs to the network and to the novel it grows beside. A 20-year-old sci-fi/fantasy novel is being revived, and its world-building shares a home with the technical build. The two run on separate machines, so the creative work never touches the security work. Story details are deliberately kept out of this repository.
 
 ## The idea in one minute
 
 Most home and small-site networks are watched by nobody. Devices join, firmware ages, cheap IoT gadgets talk to the internet, and problems show up only after something breaks.
 
-This project puts a small team of machines on the job:
+This project puts a small team of machines on the job, each known here by its function:
 
-1. A **central brain** reads telemetry and logs, and reasons about them with a local LLM.
+1. A **central brain** reads telemetry and logs and reasons about them with a local LLM.
 2. **Scouts** at the edge report in and show a local view.
 3. An **enforcer** at the gateway isolates anything untrusted.
 4. An **archivist** keeps the long-term record.
-5. **You**, on a phone, say yes or no to anything consequential.
+5. **A person**, on a phone, says yes or no to anything consequential.
 
 Everything runs locally. The LLM is hosted on the network's own hardware, not a cloud service, so network data stays inside it.
+
+## The clients, by function
+
+| Function | What it does | Status |
+|---|---|---|
+| AI orchestrator | Runs Seravo-0, the sandbox and short-term memory. The central brain. | Active |
+| Edge scouts | Lightweight clients that report to the orchestrator and show a local view. One is the template for new clients. | Active |
+| Edge enforcer | Gateway-edge security. Watches the isolated sandbox and fails closed. | Active, gaining features |
+| Long-term archivist | Write-once vault for logs, audits and history. | Active |
+| Core resource and console | Main management machine, also provides subnet routing. | Active |
+| Router and controller host | Handles addressing and routing for the mesh. | Active |
+| Field gateway | Serves a remote or travelling LAN. | Active |
+| Mobile approvers | Phones used to approve or deny AI actions. | Active |
+| Internal auditor | Reviews sandbox traffic logs weekly. | Active role |
+| Creative and failover node | Hosts the novel workspace and a creative LLM. Also the backup for Seravo-0. | Active |
+| New fleet nodes, burst compute, credential vault | See the [roadmap](docs/roadmap.md). | Planned |
 
 ## Architecture at a glance
 
@@ -34,6 +50,20 @@ flowchart LR
 ```
 
 More detail: [docs/architecture.md](docs/architecture.md).
+
+## Infrastructure (details redacted)
+
+The real build is described only by what each part does. Anything that could help someone attack it is withheld on purpose.
+
+| Layer | What is public here | What is withheld |
+|---|---|---|
+| Hardware | The type of role each machine plays | `[REDACTED: models, specs, serials]` |
+| Addressing | That servers, workstations, IoT and guests sit on separate segments | `[REDACTED: ranges, VLAN IDs, address plan]` |
+| Mesh overlay | An encrypted overlay joins every client, with the LAN preferred when available | `[REDACTED: provider config, route lists, ACL rules]` |
+| Access control | Four access tiers, least privilege | `[REDACTED: tags, keys, credentials]` |
+| Storage | A write-once long-term vault, reached over a dedicated direct link | `[REDACTED: paths, shares, mount layout]` |
+| Remote access | Remote clients can reach the mesh | `[REDACTED: ports, services, exit points]` |
+| Telemetry | Weekly heartbeat, planned five-minute health reports | `[REDACTED: endpoints, scripts, schedules]` |
 
 ## Documentation
 
