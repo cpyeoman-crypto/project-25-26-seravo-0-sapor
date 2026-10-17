@@ -7,7 +7,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from test_kit import LAN, LAST_KNOWN, MAC, MESH, TEST_DIR, fleet_poll, ntfy, resolver
+from test_kit import LAN, LAST_KNOWN, MAC, MESH, NESTED_JSON, TEST_DIR, fleet_poll, ntfy, resolver
 
 
 class ResolverValidationTests(unittest.TestCase):
@@ -167,6 +167,7 @@ class NtfyValidationTests(unittest.TestCase):
             json.dumps({"topic": "x-topic", "message": private_marker}),
             private_marker + " malformed-json",
             json.dumps([private_marker]),
+            NESTED_JSON,
         )
         with tempfile.TemporaryDirectory(dir=TEST_DIR) as directory:
             path = Path(directory) / "spool.jsonl"
@@ -184,6 +185,37 @@ class NtfyValidationTests(unittest.TestCase):
                     self.assertIn("Invalid queued notification retained", output.getvalue())
                     self.assertNotIn(private_marker, output.getvalue())
                     self.assertNotIn("x-topic", output.getvalue())
+
+    def test_deeply_nested_queued_entry_does_not_block_valid_queued_or_current_message(self):
+        queued = {"topic": "test-topic", "message": "valid queued message"}
+        with tempfile.TemporaryDirectory(dir=TEST_DIR) as directory:
+            path = Path(directory) / "spool.jsonl"
+            path.write_text(NESTED_JSON + "\n" + json.dumps(queued) + "\n", encoding="utf-8")
+            with patch.dict(os.environ, {}, clear=True), \
+                    patch.object(ntfy, "_spool_path", return_value=path), \
+                    patch.object(ntfy, "setting",
+                                 side_effect=self.settings("http://127.0.0.1", None)), \
+                    patch.object(ntfy, "compose", return_value="valid current message"), \
+                    patch.object(ntfy, "site_name", return_value="test-site"), \
+                    patch.object(ntfy, "_spool") as spool, \
+                    patch.object(ntfy.urllib.request, "urlopen") as network, \
+                    redirect_stdout(io.StringIO()) as output:
+                network.return_value.__enter__.return_value.status = 200
+                sleep = Mock()
+                self.assertTrue(ntfy.send(
+                    "test", "test", topic_name="test-topic", sleep=sleep
+                ))
+            self.assertEqual(network.call_count, 2)
+            messages = [json.loads(call.args[0].data)["message"]
+                        for call in network.call_args_list]
+            self.assertEqual(messages, ["valid queued message", "valid current message"])
+            self.assertEqual(path.read_text(encoding="utf-8"), NESTED_JSON + "\n")
+            spool.assert_not_called()
+            sleep.assert_not_called()
+            self.assertIn("Invalid queued notification retained", output.getvalue())
+            self.assertNotIn(NESTED_JSON, output.getvalue())
+            self.assertNotIn("valid queued message", output.getvalue())
+            self.assertNotIn("valid current message", output.getvalue())
 
 
 if __name__ == "__main__":

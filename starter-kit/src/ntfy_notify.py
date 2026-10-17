@@ -190,7 +190,7 @@ def flush_spool():
         try:
             _post(json.loads(line))
             delivered += 1
-        except ValueError:
+        except (ValueError, RecursionError):
             print("[-] Invalid queued notification retained; review the private spool.")
             remaining.append(line)
         except (urllib.error.URLError, OSError):
