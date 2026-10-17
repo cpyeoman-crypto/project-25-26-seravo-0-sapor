@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily status report at 07:10
+
+[Timer]
+OnCalendar=*-*-* 07:10:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

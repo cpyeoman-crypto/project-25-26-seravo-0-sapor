@@ -24,6 +24,7 @@ Every client is described by its function. Hardware is named by vendor and produ
 | **Linux laptop with an NVIDIA GPU** | The mobile medic client. |
 | **TP-Link Omada** | Hardware controller, wired gateway router, managed switch and Wi-Fi access points. |
 | **GL.iNet** (OpenWrt) | Travel router. |
+| **TP-Link travel router** (second unit) | Planned backup router with a cellular hotspot, for failover if the satellite uplink has problems. |
 | **Samsung Galaxy** phone and tablet, other Android phone | Mobile approvers; a retired Galaxy phone is the planned quarantine buffer. |
 | **Smartwatch** | Limited, read-only watch client. |
 | **IoT** (floodlights, cameras, plugs, a thermostat, a home-automation gateway, Google Nest speakers, a TV, a printer) | Observed on isolated segments, never trusted. |
@@ -57,6 +58,7 @@ The reviewed inventory holds about 40 records. Roughly a third are compute, mobi
 | **Edge enforcer** | Dell OptiPlex micro-PC (candidate), to sit between the uplinks and the gateway | Dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy and mirror telemetry. Fails closed. | **Planned**: hardware not yet placed in line |
 | **Controller migration** | Same micro-PC | Moves the controller software into a container on the enforcer so the hardware controller can retire. | **Planned** |
 | **Travel router** | GL.iNet travel router running OpenWrt | Brings a travelling LAN back into the mesh, with failover between uplinks. | **Active, intermittent** |
+| **Backup travel router (cellular failover)** | Second travel router, TP-Link `[REDACTED: model]`, paired with a cellular hotspot `[REDACTED: carrier, plan, SIM]` | Standby uplink if the satellite service has problems. Takes over as the internet path, or feeds the edge enforcer's second uplink, and is probed regularly so failover is known to work before it is needed. | **Planned** (future build) |
 
 ## Mobile and wearable clients
 
@@ -95,6 +97,7 @@ flowchart TB
         Medic["Mobile medic client"]
         Hub["Windows hub<br/>mirror-port relay"]
         Travel["Travel router"]
+        Backup["Backup travel router<br/>+ cellular hotspot (planned)"]
     end
     subgraph Net["Network"]
         Ctl["Controller"]
@@ -108,6 +111,7 @@ flowchart TB
     Hub -. relay if direct path fails .-> Ctl
     Ctl --- GW --- IoT
     Travel --- GW
+    Backup -. standby uplink, planned .-> GW
     Brain -- bounded repair requests --> Hands
     Brain -- logs, audits --> Vault
     Brain -- approve / deny request --> Mobile
@@ -124,6 +128,7 @@ flowchart TB
 - **Outbound scripts.** The orchestrator stages scripts it has reviewed, and a human approves them before they reach clients.
 - **Wake and heal.** A healer checks a client over the LAN, then over the mesh, then wakes it using its registered hardware identity. Only clients marked wake-required are woken, and mobile clients only on explicit request.
 - **Alerts.** Phone notifications fire on a state change only, not on every check.
+- **Backup uplink (planned).** The backup travel router and its cellular hotspot stay idle until the satellite uplink degrades. A health probe will test them on a schedule and report the result, and an urgent alert fires if every uplink is down. See [polling.md](polling.md).
 - **Controller access.** The orchestrator talks to the controller directly first, and falls back to a relay through the Windows hub. Certificate checks stay on.
 - **Changes.** Nothing alters the live controller, the inventory or a trust anchor without an explicit apply step and a backup first.
 - **External AI.** Cloud assistants are rate-limited by a token circuit breaker, so a runaway loop cannot spend the budget.

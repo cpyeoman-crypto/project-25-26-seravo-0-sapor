@@ -1,0 +1,9 @@
+[Unit]
+Description=Heartbeat every 5 minutes
+
+[Timer]
+OnBootSec=1min
+OnCalendar=*:0/5
+
+[Install]
+WantedBy=timers.target

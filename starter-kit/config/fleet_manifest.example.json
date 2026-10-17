@@ -1,0 +1,41 @@
+{
+  "_comment": "Copy to config/fleet_manifest.json. Names are yours to choose. Describe each node by ROLE. MAC addresses are the stable identity; addresses are only a last resort.",
+  "heartbeat_dir": "state/heartbeats",
+  "heartbeat_max_age_min": 15,
+  "wol_broadcast": "<LAN broadcast address, e.g. the .255 of your subnet>",
+  "nodes": [
+    {
+      "name": "orchestrator",
+      "role": "AI orchestrator",
+      "macs": ["<aa:bb:cc:dd:ee:01>"],
+      "mesh_name": "<hostname on your mesh overlay>",
+      "probe_port": 22,
+      "wake_required": false
+    },
+    {
+      "name": "edge-scout-1",
+      "role": "Edge scout / console",
+      "macs": ["<aa:bb:cc:dd:ee:02>"],
+      "mesh_name": "<hostname on your mesh overlay>",
+      "probe_port": 22,
+      "wake_required": true
+    },
+    {
+      "name": "windows-hub",
+      "role": "Windows hub",
+      "macs": ["<aa:bb:cc:dd:ee:03>"],
+      "mesh_name": "<hostname on your mesh overlay>",
+      "probe_port": 22,
+      "wake_required": true,
+      "last_known_address": "<optional, lowest trust>"
+    },
+    {
+      "name": "travel-medic",
+      "role": "Mobile Linux client",
+      "macs": ["<aa:bb:cc:dd:ee:04>"],
+      "mesh_name": "<hostname on your mesh overlay>",
+      "probe_port": 22,
+      "wake_required": false
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[Unit]
+Description=Push the daily status report
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/fleet-kit
+Environment=FLEET_ENV=%h/fleet-kit/config/fleet.env
+ExecStart=/usr/bin/python3 src/daily_status.py --send

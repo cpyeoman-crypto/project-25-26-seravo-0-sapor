@@ -1,0 +1,8 @@
+[Unit]
+Description=Write this client's heartbeat file
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/fleet-kit
+# Edit --name to match this client's entry in the manifest, and --out to where the hub collects from.
+ExecStart=/usr/bin/python3 src/heartbeat.py --name CHANGE-ME --out %h/fleet-kit/state/heartbeats/CHANGE-ME.json

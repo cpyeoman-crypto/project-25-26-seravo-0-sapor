@@ -5,3 +5,10 @@ archive/transcripts/*.jsonl
 !archive/transcripts/.gitkeep
 .env
 *.key
+
+starter-kit/config/fleet.env
+starter-kit/config/fleet_manifest.json
+starter-kit/state/*
+!starter-kit/state/.gitkeep
+starter-kit/fleet-kit.zip
+__pycache__/

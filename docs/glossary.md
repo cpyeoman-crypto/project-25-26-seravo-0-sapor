@@ -15,3 +15,10 @@
 | Vector database | A store that finds related items by meaning, used here for short-term memory. |
 | Quantised model | A smaller, faster version of an LLM that trades a little accuracy for less memory. |
 | Idempotent | Safe to run many times with the same result. |
+| ntfy | An open-source push-notification service. The network publishes to a private topic and phones subscribe. |
+| Heartbeat | A small health file a client writes on a timer. Silence from the client is itself an alert. |
+| Polling | The hub asks a controller or client for its state, instead of waiting to be told. |
+| State-change alert | An alert sent only when something changes, not each time it is checked. |
+| Spool | A small on-disk queue that holds notifications that could not be delivered until the next send. |
+| Failover | Switching to a standby path, such as a cellular uplink, when the main one fails. |
+| Host-key pinning | Verifying a machine's SSH fingerprint out of band before trusting it. |

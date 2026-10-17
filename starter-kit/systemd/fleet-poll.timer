@@ -1,0 +1,10 @@
+[Unit]
+Description=Poll fleet nodes every 2 minutes
+
+[Timer]
+OnBootSec=1min
+OnCalendar=*:0/2
+Persistent=true
+
+[Install]
+WantedBy=timers.target

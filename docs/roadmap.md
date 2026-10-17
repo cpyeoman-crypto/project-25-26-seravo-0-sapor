@@ -12,10 +12,12 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 
 ## Planned clients
 - **Edge enforcer in line:** a Dell OptiPlex micro-PC (candidate) with dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy, mirror telemetry, a fail-closed bypass cable and audible alarms.
+- **Backup travel router with cellular hotspot:** a second travel router (TP-Link) paired with a cellular hotspot, kept as a standby uplink for when the satellite service has problems. Adds an uplink-health probe, automatic failover testing and a push report. Exact model and plan `[REDACTED]`.
 - **Controller migration:** the network controller moves into a container on the edge enforcer.
 - **Long-term archivist machine:** a dedicated machine on its own isolated direct link, so the orchestrator has a fallback if its own drive fails.
 - **Internal auditor:** a small CPU-only model that reviews sandbox logs weekly.
 - **Creative and failover node:** a second LLM that takes over if the orchestrator loses its heartbeat.
+- **Burst compute and spare nodes:** asleep-by-default clients that wake over the network to take heavy LLM inference work, then go back to sleep.
 - **Mobile quarantine buffer:** a retired Samsung Galaxy phone that scans files before they reach the orchestrator.
 - **Credential vault:** recovers a wiped client and reissues its identity.
 - **New fleet nodes and a repeat-build laptop,** joined through pre-approved, tagged keys.

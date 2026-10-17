@@ -1,0 +1,8 @@
+[Unit]
+Description=Poll fleet nodes and push state-change alerts
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/fleet-kit
+Environment=FLEET_ENV=%h/fleet-kit/config/fleet.env
+ExecStart=/usr/bin/python3 src/fleet_poll.py --manifest config/fleet_manifest.json --send

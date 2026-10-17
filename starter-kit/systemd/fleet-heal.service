@@ -1,0 +1,9 @@
+[Unit]
+Description=Wake wake_required nodes that are down
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/fleet-kit
+Environment=FLEET_ENV=%h/fleet-kit/config/fleet.env
+# Dry-run until you add --apply yourself, after reading the dry-run output.
+ExecStart=/usr/bin/python3 src/wol_healer.py --manifest config/fleet_manifest.json

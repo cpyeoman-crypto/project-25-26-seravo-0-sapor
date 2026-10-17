@@ -27,7 +27,8 @@ Seravo-0 and its repair tools run on the network's own hardware, so network data
 **What it can do to date** (full detail in [docs/seravo-0.md](docs/seravo-0.md)):
 - Keep a reviewed inventory of every client and check it against live observations.
 - Run scheduled health checks, a nightly audit, and morning and daily status reports.
-- Wake and heal clients that drop off the network.
+- Wake and heal clients that drop off the network, and nudge weak Wi-Fi clients onto a stronger access point.
+- Push state-change alerts and scheduled reports to the operator's phone through ntfy ([examples](docs/report-examples.md), [polling](docs/polling.md)).
 - Watch the isolated sandbox for misbehaving IoT devices and flag unknown devices on the network.
 - Request small code repairs from a local model, with checks and a human-readable diff.
 - Learn from archived chats and notes dropped into its ingest folder, without ever treating that text as a command.
@@ -70,6 +71,7 @@ Full detail, hardware by vendor and family, and interaction rules are in [docs/f
 | Mobile Linux medic client | Reports telemetry every five minutes. Restricted by policy. | Active |
 | Network controller, gateway, switch, access points (TP-Link Omada) | Segments, DHCP, Wi-Fi and routing. | Active |
 | Travel router (GL.iNet, OpenWrt) | Brings a travelling LAN into the mesh. | Active, intermittent |
+| Backup travel router (TP-Link) with cellular hotspot | Standby internet path if the satellite uplink has problems. | Planned |
 | Mobile approvers | Android phones and a Samsung Galaxy tablet used to approve or deny AI actions. | Active |
 | Long-term archivist (local vault) | Write-once vault for logs, audits and history. | Active |
 | Windows fleet node | General fleet member, woken on demand. | Active, degraded (offline, identity conflict) |
@@ -113,13 +115,13 @@ The real build is described only by what each part does. Anything that could hel
 
 | Layer | What is public here | What is withheld |
 |---|---|---|
-| Hardware | Vendors and product families by role: Dell Precision laptops, Dell OptiPlex micro-PCs, a TP-Link Omada network stack, a GL.iNet travel router, Samsung Galaxy and other Android devices, Windows PCs, IoT devices | `[REDACTED: exact models, specs, serials]` |
+| Hardware | Vendors and product families by role: Dell Precision laptops, Dell OptiPlex micro-PCs, a TP-Link Omada network stack, a GL.iNet travel router, a planned TP-Link backup travel router with a cellular hotspot, Samsung Galaxy and other Android devices, Windows PCs, IoT devices | `[REDACTED: exact models, specs, serials]` |
 | Addressing | That servers, workstations, IoT and guests sit on separate segments | `[REDACTED: ranges, VLAN IDs, address plan, MAC addresses]` |
 | Mesh overlay | An encrypted overlay joins every client, with the LAN preferred when available | `[REDACTED: provider config, route lists, ACL rules]` |
 | Access control | Four access tiers, least privilege | `[REDACTED: tags, keys, credentials]` |
 | Storage | A write-once long-term vault, reached over a dedicated direct link | `[REDACTED: paths, shares, mount layout]` |
 | Remote access | Remote clients can reach the mesh | `[REDACTED: ports, services, exit points]` |
-| Telemetry | Weekly heartbeat, planned five-minute health reports | `[REDACTED: endpoints, scripts, schedules]` |
+| Telemetry | Five-minute client heartbeats, push alerts to phones (ntfy) | `[REDACTED: endpoints, scripts, schedules]` |
 | Software versions | Which categories of software are used | `[REDACTED: versions, configs, hostnames]` |
 
 ## Documentation
@@ -127,6 +129,11 @@ The real build is described only by what each part does. Anything that could hel
 | Document | What's in it |
 |---|---|
 | [docs/fleet-clients.md](docs/fleet-clients.md) | Every client: hardware class, role, interactions and status |
+| [docs/ntfy-alerts.md](docs/ntfy-alerts.md) | How the network talks to the phone: message format, priorities, retries |
+| [docs/polling.md](docs/polling.md) | How every client is polled, found by identity, and how often |
+| [docs/report-examples.md](docs/report-examples.md) | What the field alerts and daily reports look like (redacted) |
+| [docs/illustrations.md](docs/illustrations.md) | Diagrams: big picture, alert flow, self-healing, credential hygiene |
+| [starter-kit/](starter-kit/README.md) | A tested, standard-library toolkit plus a prompt guide to build your own |
 | [docs/seravo-0.md](docs/seravo-0.md) | Directive, authority, capabilities and limits |
 | [docs/ai-team.md](docs/ai-team.md) | The assistants and models that helped, and how they hand off |
 | [docs/workflow.md](docs/workflow.md) | From copy-paste to Ctrl-S ingest to VS Code |
@@ -147,6 +154,7 @@ archive/
   transcripts/
     <session-id>.jsonl         # raw transcript for the same session
 docs/                          # overview documents listed above
+starter-kit/                   # runnable polling and ntfy kit, prompt guide, checklist
 ```
 
 Each session has one `.md` and one matching `.jsonl` sharing the same `<session-id>`. Real archive content is git-ignored; only the folder layout is tracked.
