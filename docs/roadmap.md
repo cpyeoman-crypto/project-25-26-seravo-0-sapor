@@ -31,4 +31,5 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 - **Token budgets and resource limits** for the orchestrator's model.
 - **Honeypot segment, tarpit and quarantine playbooks:** practised in a dry-run simulation, not yet applied.
 - **WAN-isolated planning:** a fully local fallback so the orchestrator can plan and repair with no internet.
+- **Voice ingestion (idea):** dictated voice notes, field commands and spontaneous creative notes transcribed locally, then pushed into the ingest queue and archive like any saved chat. Once archived they would be indexed into the vector memory, so spoken context can be recalled in later terminal sessions. Not built yet; no audio leaves the network by design.
 - **Bigger local models:** more RAM and fast storage.

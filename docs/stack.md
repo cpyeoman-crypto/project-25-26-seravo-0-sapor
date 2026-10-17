@@ -11,15 +11,15 @@ Product names and categories only. Versions, configurations, hostnames and ports
 - **Windows laptop and PC**, a **Linux laptop with an NVIDIA GPU**, a smartwatch, and IoT devices (floodlights, cameras, plugs, an Emerson Sensi thermostat, a Legrand gateway, Google Nest speakers, a TV, a printer).
 
 ## Operating systems
-- **Pop!_OS (Ubuntu-based Linux):** the central brain and several workstations and scouts.
+- **Pop!_OS (Ubuntu-based Linux, 24.04 LTS):** the AI compute backbone: the central brain and the other heavy AI nodes. Chosen for its out-of-the-box NVIDIA GPU handling and power management for local inference, and for a solid systemd base for the scheduled jobs.
 - **Debian Linux:** a subnet-router node.
 - **Android:** mobile approvers and the architect's uplink.
 - **OpenWrt:** the GL.iNet travel router.
-- **Windows 10/11:** a management hub and workstations.
+- **Windows 10/11:** kept on purpose, not by accident. The fleet does not force a Linux-only world, so Windows tools and workflows that have no good Linux equivalent stay available. The Windows hub joins the mesh and runs a native Python telemetry agent that bridges it to the Linux core.
 
 ## Linux services and tooling
 - **systemd:** timers and services for scheduled jobs.
-- **Docker and Docker Compose:** container host for the chat front end.
+- **Docker and Docker Compose:** keeps the host clean and avoids dependency clashes. Hosts the chat front end (Open WebUI) and the vector store behind archive memory `[REDACTED: ports, volumes]`. Untrusted code and packet analysis are meant to run in short-lived sandbox containers.
 - **Samba:** a shared audit folder for clients. `[REDACTED: shares, accounts, paths]`
 - **cron:** lightweight scheduled checks on clients.
 - **ntfy:** push notifications to phones.
