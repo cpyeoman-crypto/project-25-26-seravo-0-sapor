@@ -60,26 +60,26 @@ See [docs/workflow.md](docs/workflow.md) for the detail.
 
 ## The clients, by function
 
-Full detail, hardware classes and interaction rules are in [docs/fleet-clients.md](docs/fleet-clients.md).
+Full detail, hardware by vendor and family, and interaction rules are in [docs/fleet-clients.md](docs/fleet-clients.md).
 
 | Function | What it does | Status |
 |---|---|---|
-| AI orchestrator | Runs Seravo-0, the sandbox and short-term memory. The central brain. | Active |
-| Edge scout / operator console | Operator console and Ingress drop folder. Template for new clients. Also a mesh subnet router. | Active |
+| AI orchestrator (Dell Precision laptop, headless) | Runs Seravo-0, the sandbox and short-term memory. The central brain. | Active |
+| Edge scout / operator console (Dell Precision laptop) | Operator console and Ingress drop folder. Template for new clients. Also a mesh subnet router. | Active |
 | Windows hub and mirror-port relay | Relays switch mirror-port data and stands in as the controller relay. | Active, degraded (access blocked) |
 | Mobile Linux medic client | Reports telemetry every five minutes. Restricted by policy. | Active |
-| Network controller, gateway, switch, access points | Segments, DHCP, Wi-Fi and routing. | Active |
-| Travel router | Brings a travelling LAN into the mesh. | Active, intermittent |
-| Mobile approvers | Phones and a tablet used to approve or deny AI actions. | Active |
+| Network controller, gateway, switch, access points (TP-Link Omada) | Segments, DHCP, Wi-Fi and routing. | Active |
+| Travel router (GL.iNet, OpenWrt) | Brings a travelling LAN into the mesh. | Active, intermittent |
+| Mobile approvers | Android phones and a Samsung Galaxy tablet used to approve or deny AI actions. | Active |
 | Long-term archivist (local vault) | Write-once vault for logs, audits and history. | Active |
 | Windows fleet node | General fleet member, woken on demand. | Active, degraded (offline, identity conflict) |
-| Golden-master laptop fleet | Reconditioned laptops stamped from one image. | In progress |
-| Edge enforcer | In-line firewall, intrusion prevention and DNS filtering. Fails closed. | Planned |
+| Golden-master laptop fleet | Reconditioned Dell laptops stamped from one image. | In progress |
+| Edge enforcer (Dell OptiPlex micro-PC candidate) | In-line firewall, intrusion prevention and DNS filtering. Fails closed. | Planned |
 | Controller migration | Controller software moves onto the edge enforcer. | Planned |
-| Internal auditor | Weekly review of sandbox traffic logs. | Planned |
+| Internal auditor (Dell OptiPlex micro-PC candidate) | Weekly review of sandbox traffic logs. | Planned |
 | Creative and failover node | Second LLM, takes over if the orchestrator goes quiet. | Planned |
-| Dedicated archivist machine | Separate long-term store on an isolated direct link. | Planned |
-| Mobile quarantine buffer | Retired phone that scans files before they reach the orchestrator. | Planned |
+| Dedicated archivist machine (Dell 5000-series laptop candidate) | Separate long-term store on an isolated direct link. | Planned |
+| Mobile quarantine buffer | Retired Samsung Galaxy phone that scans files before they reach the orchestrator. | Planned |
 | Credential vault | Recovers a wiped client and reissues its identity. | Planned |
 | Field gateway | Subnet router for a remote LAN. | Planned / unverified |
 | Remote-desktop wall, status HUD | One-screen view of every client, plus a status display. | Planned |
@@ -105,7 +105,7 @@ More detail: [docs/architecture.md](docs/architecture.md).
 
 ## Software and platform
 
-Linux throughout the core, with a Windows hub. Full list in [docs/stack.md](docs/stack.md).
+Linux throughout the core, with a Windows hub. Network hardware is TP-Link Omada; the machines are mostly Dell. Full list in [docs/stack.md](docs/stack.md).
 
 ## Infrastructure (details redacted)
 
@@ -113,7 +113,7 @@ The real build is described only by what each part does. Anything that could hel
 
 | Layer | What is public here | What is withheld |
 |---|---|---|
-| Hardware | The type of role each machine plays | `[REDACTED: models, specs, serials]` |
+| Hardware | Vendors and product families by role: Dell Precision laptops, Dell OptiPlex micro-PCs, a TP-Link Omada network stack, a GL.iNet travel router, Samsung Galaxy and other Android devices, Windows PCs, IoT devices | `[REDACTED: exact models, specs, serials]` |
 | Addressing | That servers, workstations, IoT and guests sit on separate segments | `[REDACTED: ranges, VLAN IDs, address plan, MAC addresses]` |
 | Mesh overlay | An encrypted overlay joins every client, with the LAN preferred when available | `[REDACTED: provider config, route lists, ACL rules]` |
 | Access control | Four access tiers, least privilege | `[REDACTED: tags, keys, credentials]` |

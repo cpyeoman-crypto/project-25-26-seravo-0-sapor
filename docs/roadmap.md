@@ -3,7 +3,7 @@
 Status per client is in [fleet-clients.md](fleet-clients.md). This page groups what is still to build.
 
 ## In progress
-- **Golden master laptop fleet:** reconditioned laptops stamped from one image and one idempotent install script.
+- **Golden master laptop fleet:** reconditioned Dell laptops stamped from one image and one idempotent install script.
 - **Fleet adoption:** bringing the remaining clients under remote management, once their access is confirmed out of band.
 - **Identity clean-up:** resolving conflicting hardware identities so every dispatch target is unambiguous.
 - **Remote desktop access** to clients, with a LAN-first, mesh-fallback path.
@@ -11,15 +11,15 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 - **IoT onboarding:** fixing join problems on one segment.
 
 ## Planned clients
-- **Edge enforcer in line:** dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy, mirror telemetry, a fail-closed bypass cable and audible alarms.
+- **Edge enforcer in line:** a Dell OptiPlex micro-PC (candidate) with dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy, mirror telemetry, a fail-closed bypass cable and audible alarms.
 - **Controller migration:** the network controller moves into a container on the edge enforcer.
 - **Long-term archivist machine:** a dedicated machine on its own isolated direct link, so the orchestrator has a fallback if its own drive fails.
 - **Internal auditor:** a small CPU-only model that reviews sandbox logs weekly.
 - **Creative and failover node:** a second LLM that takes over if the orchestrator loses its heartbeat.
-- **Mobile quarantine buffer:** a retired phone that scans files before they reach the orchestrator.
+- **Mobile quarantine buffer:** a retired Samsung Galaxy phone that scans files before they reach the orchestrator.
 - **Credential vault:** recovers a wiped client and reissues its identity.
 - **New fleet nodes and a repeat-build laptop,** joined through pre-approved, tagged keys.
-- **Smart-home integration** for the IoT devices.
+- **Smart-home integration** (Home Assistant) for the IoT devices.
 - **Status HUD or touchscreen display** with an audible alarm.
 - **Remote-desktop wall:** one screen showing every client session.
 
