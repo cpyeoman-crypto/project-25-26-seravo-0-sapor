@@ -6,6 +6,14 @@ A private mesh network with an AI at its centre. Seravo-0 is a large language mo
 
 That question belongs to the network and to the novel it grows beside. A 20-year-old sci-fi/fantasy novel is being revived, and its world-building shares a home with the technical build. The two run on separate machines, so the creative work never touches the security work. Story details are deliberately kept out of this repository.
 
+## Why it exists
+
+The network spans more than one building: trusted compute machines, isolated smart-home segments, and remote or travelling field gear, all joined by an encrypted overlay. Passive monitoring was not enough, and nobody wanted to be the one checking it. The project set out to build an orchestrator that patrols the physical network layer and the overlay together, and then repairs small things itself. The creative framework of the novel and the technical need for a guardian grew up together, which is where the name Sapor comes from `[REDACTED: story context]`.
+
+It started as ping-sweep scripts. It is now an event-driven system with one central, reviewed repository as its source of truth: change watching with segment-aware alerts, self-healing loops, scheduled reports to the operator's phone, and automatic sync of every reviewed script and prompt to each adopted client. Credentials were scrubbed from the history on purpose and now live outside the repository.
+
+The assistants cooperate under a written protocol: cloud assistants design and draft, the local orchestrator decides what runs, and a local repair model makes small bounded fixes. They pass work using absolute paths, minified JSON and named roles, so no agent has to guess what another meant. A person still approves anything consequential. See [docs/ai-team.md](docs/ai-team.md).
+
 ## The idea in one minute
 
 Most home and small-site networks are watched by nobody. Devices join, firmware ages, cheap IoT gadgets talk to the internet, and problems show up only after something breaks.

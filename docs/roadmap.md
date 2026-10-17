@@ -13,14 +13,14 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 ## Planned clients
 - **Edge enforcer in line:** a Dell OptiPlex micro-PC (candidate) with dual-uplink (satellite plus cellular) firewall, intrusion prevention, DNS filtering, transparent proxy, mirror telemetry, a fail-closed bypass cable and audible alarms.
 - **Backup travel router with cellular hotspot:** a second travel router (TP-Link) paired with a cellular hotspot, kept as a standby uplink for when the satellite service has problems. Adds an uplink-health probe, automatic failover testing and a push report. Exact model and plan `[REDACTED]`.
-- **Controller migration:** the network controller moves into a container on the edge enforcer.
+- **Controller migration:** the network controller moves into a container on the edge enforcer, with audible hardware-level alarms for physical intrusion.
 - **Long-term archivist machine:** a dedicated machine on its own isolated direct link, so the orchestrator has a fallback if its own drive fails.
 - **Internal auditor:** a small CPU-only model that reviews sandbox logs weekly.
 - **Creative and failover node:** a second LLM that takes over if the orchestrator loses its heartbeat.
-- **Burst compute and spare nodes:** asleep-by-default clients that wake over the network to take heavy LLM inference work, then go back to sleep.
+- **Burst compute orchestration:** asleep-by-default spare nodes that the orchestrator wakes over the network (Wake-on-LAN) for heavy local LLM inference, then lets sleep again when the queue clears.
 - **Mobile quarantine buffer:** a retired Samsung Galaxy phone that scans files before they reach the orchestrator.
-- **Credential vault:** recovers a wiped client and reissues its identity.
-- **New fleet nodes and a repeat-build laptop,** joined through pre-approved, tagged keys.
+- **Credential vault:** recovers a wiped or compromised client and reissues its cryptographic identity. Reissue stays behind a human approval until the process has proved itself.
+- **Autonomous node provisioning ("insta-join"):** a new edge scout bootstraps itself into the mesh using a pre-approved, tagged, single-purpose join key, after the human has confirmed its host-key fingerprint. Applies to new fleet nodes and the repeat-build laptop.
 - **Smart-home integration** (Home Assistant) for the IoT devices.
 - **Status HUD or touchscreen display** with an audible alarm.
 - **Remote-desktop wall:** one screen showing every client session.
@@ -31,5 +31,4 @@ Status per client is in [fleet-clients.md](fleet-clients.md). This page groups w
 - **Token budgets and resource limits** for the orchestrator's model.
 - **Honeypot segment, tarpit and quarantine playbooks:** practised in a dry-run simulation, not yet applied.
 - **WAN-isolated planning:** a fully local fallback so the orchestrator can plan and repair with no internet.
-- **Burst compute:** cold spares that wake on demand for heavy jobs. Idea only, not requested in detail.
 - **Bigger local models:** more RAM and fast storage.
