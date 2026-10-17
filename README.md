@@ -158,6 +158,7 @@ The real build is described only by what each part does. Anything that could hel
 | [docs/seravo-0.md](docs/seravo-0.md) | Directive, authority, capabilities and limits |
 | [docs/ai-team.md](docs/ai-team.md) | The assistants and models that helped, and how they hand off |
 | [docs/workflow.md](docs/workflow.md) | From copy-paste to Ctrl-S ingest to VS Code |
+| [docs/program-logic.md](docs/program-logic.md) | Daemon design, state tracking, API integrations and the AI pipeline |
 | [docs/stack.md](docs/stack.md) | Operating systems and software |
 | [docs/architecture.md](docs/architecture.md) | Data flow, memory tiers, connectivity model |
 | [docs/network-roles.md](docs/network-roles.md) | Every role and the four access tiers |

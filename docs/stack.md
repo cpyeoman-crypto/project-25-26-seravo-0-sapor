@@ -38,6 +38,8 @@ Product names and categories only. Versions, configurations, hostnames and ports
 - **Open WebUI:** chat front end for local models.
 - **Cloud assistants:** Gemini, GitHub Copilot, Claude Code, Codex and Continue.
 
+See [program-logic.md](program-logic.md) for how these pieces connect.
+
 ## Languages and libraries
 - **Python 3** with virtual environments, plus Bash and PowerShell.
 - Libraries for file watching, HTTP, system metrics and web APIs.
