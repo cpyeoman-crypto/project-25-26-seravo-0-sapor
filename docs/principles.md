@@ -1,6 +1,6 @@
 # Design principles
 
-1. **Local first.** Models, data and decisions stay on the network's own hardware.
+1. **Local first.** Seravo-0, its repair model and its data stay on the network's own hardware. Cloud assistants may advise, but they never run operations or see the live network.
 2. **Human in the loop.** The AI proposes, a person approves. Consequential actions are never automatic.
 3. **Fail defensively.** The security edge is allowed to fail closed. A blocked device is better than an exposed network.
 4. **Separation of concerns.** The creative node is kept apart from the security nodes, and each can back the other up without sharing data by default.
