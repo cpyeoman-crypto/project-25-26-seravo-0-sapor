@@ -221,7 +221,7 @@ def render(text, mapping):
         fail()
     for key in sorted(mapping, key=len, reverse=True):
         text = re.sub(re.escape(key), lambda _: mapping[key], text, flags=re.I)
-    if "PRIVATE KEY-----" in text:
+    if re.search(r"-----BEGIN [A-Z ]*PRIVATE KEY-----", text, re.I):
         fail()
     text = MAC.sub("xx:xx:xx:xx:xx:xx", text)
     text = IP.sub(lambda m: ("x.x.x.x" if "." in m.group() else "xxxx:xxxx:xxxx:xxxx::x")
@@ -322,10 +322,12 @@ def audit(config):
     return findings
 
 
-def assess(config_path, now=None):
+def assess(config_path, now=None, public_root=None):
     now = time.time() if now is None else now
     try:
         config = load(config_path)
+        if public_root is not None and config["public_root"] != Path(public_root).resolve():
+            fail()
         if audit(config):
             fail()
         outputs, sources = prepare(config)

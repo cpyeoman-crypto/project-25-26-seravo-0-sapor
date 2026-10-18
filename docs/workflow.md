@@ -17,19 +17,32 @@ The proposed Ingress folder is a one-way archival drop box. Tagged deployment te
 
 ### Browser export and archive hygiene (target pattern)
 
-Some deployments also use a browser userscript (for example a Tampermonkey script)
-to convert saved chat HTML into minimal JSON for ingestion. Treat this as a local
-export helper only:
+The operator describes a Tampermonkey browser userscript that strips HTML/chat-page
+boilerplate and exports reduced JSON for ingestion. Its source and live operation
+have not been verified in this public kit. Treat it as an untrusted local export
+helper, with this lifecycle contract:
 
 1. Convert HTML to a reduced JSON payload in the client workspace.
 2. Place the JSON into the ingress drop path.
-3. Move the received file into archive/learned storage only after write-complete
-   checks and provenance/size/hash recording.
-4. Delete client-side source/export copies only after archival success is verified.
+3. Archive the received JSON only after write-complete checks and provenance,
+   size and hash recording. Receipt is not proof of successful processing.
+4. Move successfully processed material to the **learned** state with a durable
+   record of what was indexed; failed or suspicious material stays quarantined.
+   "Learned" is a processing state, not proof that model weights were trained.
+5. Delete the specific client-side source/export copy only after verifying the
+   matching archive hash and successful-processing receipt under the operator's
+   retention policy. A timer, folder name or elapsed time alone is not approval.
 
 This repository does not ship that userscript and does not treat exported text as
 trusted instructions. If you add such a flow privately, keep source, transformed
 JSON, archival hash/provenance and deletion decisions auditable.
+
+The locally inspected watcher establishes an ingress-to-archive move, not the
+complete JSON validation, learned promotion or client-cleanup contract above.
+The archive/drop locations available during review contained no prompt exports;
+the public overview therefore does not claim a full archive-content review.
+Keep raw exports and extracted code private and inert; an executable file extension
+or permission bit must never grant an ingested block authority to run.
 
 ## Stage 3: editor-centred
 Work moved into **VS Code** on the central node, reached from the other clients over SSH:

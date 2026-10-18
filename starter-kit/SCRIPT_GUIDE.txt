@@ -43,7 +43,7 @@ PYTHON RUNTIME SCRIPTS
 ======================
 
 fleetctl.py — standard-library adopter and owned-file lifecycle
-  Public CLI: init, check, connect, deploy, status, uninstall.
+  Public CLI: init, check, connect, deploy, status, uninstall, docs.
     --userconfig PATH loads private JSON; explicit flags override saved values.
     Names: --kit-name, --unit-prefix (default fleet), --hub-label,
     --client-label, --node-name; --role hub|client selects units.
@@ -419,7 +419,7 @@ install.sh — compatible local wrapper; never enables timers
 build_package.sh — build a distributable archive of public kit content
   CLI: ./build_package.sh
   Inputs: fleetctl.PUBLIC's exact runtime whitelist, plus the shipped
-          README/prompt/checklist/TXT guide, five explicitly named test files
+          README/prompt/checklist/TXT guide, six explicitly named test files
           and the five named systemd service/timer template pairs.
           No runtime state, actual config or arbitrary directory/glob content.
   Outputs: starter-kit/fleet-kit.zip, replacing any archive of that name.

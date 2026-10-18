@@ -141,7 +141,7 @@ def run(repo, config_path, evidence_path, now=None):
         revision, docs = snapshot(repo)
         status = evaluate(config, evidence, revision, docs, now)
         publish_config = config.get("documentation_publish_config")
-        publishing = (docs_publish.assess(publish_config, now) if isinstance(publish_config, str)
+        publishing = (docs_publish.assess(publish_config, now, public_root=repo) if isinstance(publish_config, str)
                       else {"health": "unconfigured"})
         status["documentation_publishing"] = publishing
         if publishing["health"] != "healthy":

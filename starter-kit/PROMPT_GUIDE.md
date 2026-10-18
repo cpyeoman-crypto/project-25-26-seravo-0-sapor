@@ -114,8 +114,13 @@ Mark wake_required only for machines I said may be woken.
 
 ### Step 3: dry-run the poller
 ```
+Explain what `python3 src/fleet_poll.py --manifest config/fleet_manifest.json`
+will do on a first run, a second run, and after I switch one machine off.
+Then show me how to read state/fleet_status.json. I will paste the output
+back to you before we enable any timer.
+```
 
-### Step 4: private archive export and ingestion review
+### Private archive export and ingestion review
 ```
 I have a private browser-export/ingress workflow (for example a Tampermonkey
 userscript that converts HTML chat exports into reduced JSON for archival ingest).
@@ -130,11 +135,6 @@ Help me define a safe checklist:
 
 Use only x-masked examples and list verification commands separately from
 destructive actions. Require a rollback plan for accidental deletion.
-```
-Explain what `python3 src/fleet_poll.py --manifest config/fleet_manifest.json`
-will do on a first run, a second run, and after I switch one machine off.
-Then show me how to read state/fleet_status.json. I will paste the output
-back to you before we enable any timer.
 ```
 
 ### Step 4: adapt the resolver to my network

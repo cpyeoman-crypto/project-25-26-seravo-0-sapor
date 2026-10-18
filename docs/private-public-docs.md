@@ -148,6 +148,7 @@ The public example deliberately leaves it null. The optional hourly project time
 daily project summary then report **ATTENTION**, not green, when:
 
 - publication is unconfigured or its inputs/map/permissions are invalid;
+- publication evidence describes a different public checkout than the monitored repository;
 - a private source, map, policy, staged manifest or public output no longer matches its
   vetted counterpart;
 - any public Markdown has no vetted output entry;

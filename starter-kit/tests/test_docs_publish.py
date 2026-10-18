@@ -110,6 +110,26 @@ class DocumentationTests(unittest.TestCase):
         self.put(self.source, "# Changed privately")
         self.assertEqual(dp.assess(self.config_path)["health"], "attention")
 
+    def test_vetted_evidence_for_another_checkout_is_not_healthy(self):
+        self.publish()
+        self.assertEqual(dp.assess(self.config_path, public_root=self.public)["health"], "healthy")
+        other = self.root / "other-public"
+        other.mkdir()
+        self.assertEqual(dp.assess(self.config_path, public_root=other)["health"], "attention")
+
+    def test_approval_never_bypasses_map_change_or_permission_rescan(self):
+        self.publish()
+        self.put(self.map, json.dumps({"Synthetic-Hub": "x-hub", "Fleet": "x-fleet"}))
+        self.assertEqual(dp.assess(self.config_path)["health"], "attention")
+        self.put(self.map, json.dumps({"Synthetic-Hub": "x-hub"}))
+        self.map.chmod(0o644)
+        self.assertEqual(dp.assess(self.config_path)["health"], "attention")
+
+    def test_private_key_blocks_are_refused_case_insensitively(self):
+        for key_type in ("PRIVATE KEY", "OPENSSH PRIVATE KEY", "RSA PRIVATE KEY"):
+            with self.subTest(key_type=key_type), self.assertRaises(dp.Refusal):
+                dp.render(("-----BEGIN " + key_type + "-----\nprivate body").lower(), {})
+
     def test_modified_stage_or_source_or_public_refused_before_apply(self):
         for target in ("stage", "source", "public"):
             with self.subTest(target=target):
