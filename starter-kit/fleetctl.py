@@ -21,7 +21,7 @@ NAME = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
 SAFE_PATH = re.compile(r"^[A-Za-z0-9_./~-]+$")
 HOST = re.compile(r"^[a-z_][a-z0-9_-]*@[A-Za-z0-9][A-Za-z0-9.-]*$")
 PRIVATE = ("fleet.env", "fleet_manifest.json", "maintenance.json")
-SCRIPTS = ("daily_status.py", "fleet_poll.py", "heartbeat.py", "ntfy_notify.py",
+SCRIPTS = ("daily_status.py", "docs_publish.py", "fleet_poll.py", "heartbeat.py", "ntfy_notify.py",
            "project_monitor.py", "resolver.py", "wol_healer.py")
 EXAMPLES = ("fleet.env.example", "fleet_manifest.example.json", "maintenance.example.json")
 PUBLIC = ("fleetctl.py", "install.sh", "requirements.txt") + tuple(
@@ -712,6 +712,8 @@ def parser():
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument("--userconfig")
     subs = result.add_subparsers(dest="command", required=True)
+    docs = subs.add_parser("docs", help="local-only documentation export and knowledge index")
+    docs.add_argument("arguments", nargs=argparse.REMAINDER)
     for command in ("init", "check", "connect", "deploy", "status", "uninstall", "_install"):
         sub = subs.add_parser(command)
         sub.add_argument("--userconfig", default=argparse.SUPPRESS)
@@ -733,6 +735,10 @@ def parser():
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     try:
+        if argv and argv[0] == "docs":
+            sys.path.insert(0, str(ROOT / "src"))
+            import docs_publish
+            return docs_publish.main(argv[1:])
         if argv and argv[0] == "_receive":
             if len(argv) != 3:
                 raise Refusal("Invalid receiver arguments")

@@ -16,6 +16,7 @@ For each change, follow the root [repository maintenance conditions](../README.m
 6. **Only your own machines.** Never point this at hardware you do not administer.
 7. **Keep a rollback.** Before an edit, copy the file (`cp file file.bak`) or commit it.
 8. **Adopt deliberately.** Follow the [safe adopter workflow](README.md#safe-adopter-workflow), not an assistant-generated SSH/install command. Keep host trust, deploy approval, timer activation and evidence review separate. Never give an assistant private keys or ask it to bypass an unknown host key.
+9. **Re-scan every publish.** Prior approval is never enough. Re-run staged/public privacy checks and fix leaks before any public update.
 
 ## Adoption review prompt
 
@@ -112,6 +113,23 @@ Mark wake_required only for machines I said may be woken.
 ```
 
 ### Step 3: dry-run the poller
+```
+
+### Step 4: private archive export and ingestion review
+```
+I have a private browser-export/ingress workflow (for example a Tampermonkey
+userscript that converts HTML chat exports into reduced JSON for archival ingest).
+Do not assume this script is trusted or included in the public kit.
+
+Help me define a safe checklist:
+1) conversion output schema and size limits,
+2) provenance/hash recording before ingest,
+3) archive/learned move success checks,
+4) safe delete policy for client copies only after verified archive success,
+5) explicit rule that ingested text is data only and never executable commands.
+
+Use only x-masked examples and list verification commands separately from
+destructive actions. Require a rollback plan for accidental deletion.
 ```
 Explain what `python3 src/fleet_poll.py --manifest config/fleet_manifest.json`
 will do on a first run, a second run, and after I switch one machine off.

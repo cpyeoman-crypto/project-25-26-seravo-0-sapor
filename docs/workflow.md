@@ -15,6 +15,22 @@ The workflow changed once the useful part became the conversation itself:
 
 The proposed Ingress folder is a one-way archival drop box. Tagged deployment text may be indexed for review, but must never be executed or used to trigger commands. Any later action requires a separately reviewed instruction and explicit authorisation outside the ingested content.
 
+### Browser export and archive hygiene (target pattern)
+
+Some deployments also use a browser userscript (for example a Tampermonkey script)
+to convert saved chat HTML into minimal JSON for ingestion. Treat this as a local
+export helper only:
+
+1. Convert HTML to a reduced JSON payload in the client workspace.
+2. Place the JSON into the ingress drop path.
+3. Move the received file into archive/learned storage only after write-complete
+   checks and provenance/size/hash recording.
+4. Delete client-side source/export copies only after archival success is verified.
+
+This repository does not ship that userscript and does not treat exported text as
+trusted instructions. If you add such a flow privately, keep source, transformed
+JSON, archival hash/provenance and deletion decisions auditable.
+
 ## Stage 3: editor-centred
 Work moved into **VS Code** on the central node, reached from the other clients over SSH:
 
