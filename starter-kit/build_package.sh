@@ -10,7 +10,7 @@ import fleetctl
 files = fleetctl.PUBLIC + (
     "README.md", "PROMPT_GUIDE.md", "INFORMATION_CHECKLIST.md", "SCRIPT_GUIDE.txt",
     "tests/test_kit.py", "tests/test_daily_status.py", "tests/test_project_monitor.py",
-    "tests/test_runtime_validation.py", "tests/test_fleetctl.py",
+    "tests/test_runtime_validation.py", "tests/test_fleetctl.py", "tests/test_docs_publish.py",
 ) + tuple(
     "systemd/fleet-" + name + "." + ext
     for name in ("poll", "daily", "heal", "project", "heartbeat")

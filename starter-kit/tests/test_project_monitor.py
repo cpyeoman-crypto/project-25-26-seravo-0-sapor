@@ -206,6 +206,8 @@ class ProjectMonitorTests(unittest.TestCase):
         status = self.evaluate()
         self.assertEqual(status["expires_at"], NOW + 10)
         status["health"] = "healthy"
+        status["documentation_publishing"] = {
+            "health": "healthy", "checked_at": NOW, "expires_at": NOW + 60}
         for connector in status["connectors"]:
             connector.update(status="verified", missing=[])
         path = self.write("status.json", status)
@@ -280,7 +282,11 @@ class ProjectMonitorTests(unittest.TestCase):
         with patch.object(project_monitor, "snapshot", return_value=(REVISION, self.docs)) as snapshot:
             result = project_monitor.run(self.root, config, evidence, now=NOW)
         snapshot.assert_called_once_with(self.root)
-        self.assertEqual(result, self.evaluate())
+        expected = self.evaluate()
+        expected["documentation_publishing"] = {"health": "unconfigured"}
+        expected["findings"].append("documentation publishing: review required or unconfigured")
+        expected["health"] = "attention"
+        self.assertEqual(result, expected)
 
     def prepare_snapshot_repository(self):
         subprocess.run(["git", "init", "--quiet", str(self.root)],
@@ -420,6 +426,8 @@ class ProjectMonitorTests(unittest.TestCase):
     def test_summary_requires_expiry_last_success_and_consistent_health(self):
         status = self.evaluate()
         status.update(health="healthy", expires_at=NOW + 60)
+        status["documentation_publishing"] = {
+            "health": "healthy", "checked_at": NOW, "expires_at": NOW + 60}
         for connector in status["connectors"]:
             connector.update(status="verified", missing=[])
         path = self.write("status.json", status)
@@ -429,6 +437,10 @@ class ProjectMonitorTests(unittest.TestCase):
             {"expires_at": NOW - 1}, {"expires_at": NOW + 86401},
             {"last_successful_check": None}, {"last_successful_check": NOW + 1},
             {"documentation_review_count": 1},
+            {"documentation_publishing": None},
+            {"documentation_publishing": {"health": "attention"}},
+            {"documentation_publishing": {"health": "healthy", "checked_at": NOW,
+                                           "expires_at": NOW - 1}},
         ):
             with self.subTest(update=update):
                 path = self.write("status.json", dict(status, **update))

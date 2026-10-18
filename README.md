@@ -80,6 +80,9 @@ The following describes the project's broader workflow history, not automation i
 
 1. **Copy and paste.** Ask a cloud assistant, copy its commands, paste them into a terminal, and copy the output back.
 2. **Save and ingest.** Press Ctrl-S on a useful chat page into the Ingress folder. A watcher archives it so Seravo-0 can learn from it later.
+   Some private deployments also export browser HTML to reduced JSON (for example
+   through a local userscript) before ingress; archive success and provenance are
+   verified before any client copy is deleted.
 3. **Editor-centred.** VS Code on the central node, with several assistants working in the same workspace. Every prompt and reply is archived automatically.
 
 See [docs/workflow.md](docs/workflow.md) for the detail.
@@ -212,11 +215,19 @@ Device names, IP addresses, MAC addresses, subnets, keys, logs, raw transcripts,
 
 ## Repository maintenance conditions
 
+**Private-to-public documentation:** the [two-tier workflow](docs/private-public-docs.md)
+keeps real mesh/farm.net/Seravo-0 knowledge local, stages masked public exports for human
+review, and provides a local knowledge index for a separately configured read-only
+Seravo-0 retrieval adapter. The tool does not grant model access, upload private data or
+publish commits. Changed or unvetted documentation keeps the project report at ATTENTION.
+
 This is a public design repository with a small runnable starter kit, not proof that the broader private fleet is deployed. Use this checklist for each change; the [prompt guide](starter-kit/PROMPT_GUIDE.md) links back to these durable conditions.
 
 - [ ] Read the affected code and documentation before editing. Keep changes scoped; do not alter real runtime configuration or private state.
 - [ ] Keep public examples explicitly non-operational: `x.x.x.x` for identifying addresses, `xx:xx:xx:xx:xx:xx` for MACs and `x-…` for real identifiers or credentials. Keep ntfy example credentials empty so copying an example cannot publish. Preserve role/pseudonym labels and functional loopback, bind, protocol and port constants.
 - [ ] Do not publish real hostnames, device/user identifiers, credentials, topics, archives or telemetry. Private configuration and evidence stay ignored; redact shared outputs.
+- [ ] For private-derived Markdown, edit private sources, stage, review redacted output, explicitly apply, and check vetted-source freshness before the public PR. Keep the redaction map, source manifest and knowledge index outside this checkout; assess new facets and connector effects in both tiers.
+- [ ] Privacy checks are continuous, not one-time approvals. Re-scan staged and current public Markdown each run, including previously approved files; if a leak is detected, stop publishing and correct the source/map before reapplying.
 - [ ] Distinguish implemented local checks, reviewed evidence, historical descriptions and planned integrations. A hash match or installed unit is not live deployment evidence.
 - [ ] For every maintenance requirement, review source, result and freshness. Missing, invalid, stale, future-dated or failing evidence must yield `ATTENTION` and a nonzero checker exit. Do not remove a requirement to make the report green.
 - [ ] Review **every tracked Markdown file**, including this README. After content/privacy/claim review, update its approved SHA256 in the private evidence manifest's `docs` map. Include newly tracked Markdown and remove obsolete entries; never approve a digest blindly.

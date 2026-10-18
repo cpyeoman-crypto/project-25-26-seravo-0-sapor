@@ -9,6 +9,8 @@ import subprocess
 import time
 from pathlib import Path
 
+import docs_publish
+
 ROOT = Path(__file__).resolve().parent.parent
 GATES = ("interface", "auth", "privacy", "compatibility", "verification", "approval")
 STATUSES = ("planned", "blocked", "implemented", "verified")
@@ -137,7 +139,17 @@ def run(repo, config_path, evidence_path, now=None):
         config = read_json(config_path)
         evidence = read_json(evidence_path)
         revision, docs = snapshot(repo)
-        return evaluate(config, evidence, revision, docs, now)
+        status = evaluate(config, evidence, revision, docs, now)
+        publish_config = config.get("documentation_publish_config")
+        publishing = (docs_publish.assess(publish_config, now, public_root=repo) if isinstance(publish_config, str)
+                      else {"health": "unconfigured"})
+        status["documentation_publishing"] = publishing
+        if publishing["health"] != "healthy":
+            status["health"] = "attention"
+            status["findings"].append("documentation publishing: review required or unconfigured")
+        else:
+            status["expires_at"] = min(status["expires_at"], publishing["expires_at"])
+        return status
     except (OSError, ValueError, TypeError, OverflowError, RecursionError, subprocess.SubprocessError):
         # Never reproduce untrusted report content, paths, or exception messages.
         return {"schema": 1, "checked_at": now, "health": "invalid",
@@ -179,6 +191,20 @@ def summary(path, now=None):
                  f"Last successful check (epoch): {last}",
                  f"Checks: {passed}/{len(checks)} passed",
                  f"Documentation review needs: {status['documentation_review_count']}"]
+        publishing = status.get("documentation_publishing", {"health": "unconfigured"})
+        if not isinstance(publishing, dict) or publishing.get("health") != "healthy":
+            healthy = False
+            lines[0] = "Project: attention"
+            lines.append("Documentation publishing: unconfigured or review required")
+        else:
+            if (not fresh(publishing.get("checked_at"), now, 7200)
+                    or type(publishing.get("expires_at")) not in (int, float)
+                    or not now <= publishing["expires_at"] <= now + 86400):
+                healthy = False
+                lines[0] = "Project: attention"
+                lines.append("Documentation publishing: evidence expired")
+            else:
+                lines.append("Documentation publishing: vetted")
         if expired:
             lines.append("Evidence freshness: expired or invalid")
         for i, row in enumerate(checks, 1):

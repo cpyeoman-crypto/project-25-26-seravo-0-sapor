@@ -8,6 +8,9 @@ A small, tested, standard-library-only toolkit that reproduces the core loop of 
 - **Wake** machines that are allowed to be woken (dry-run by default).
 - **Heartbeat** from each client so silence gets noticed.
 - **Assess project maintenance** from tracked documentation hashes and reviewed local evidence, without running ingested commands or external connectors.
+- **Maintain two documentation tiers** with [local staged exports](../docs/private-public-docs.md),
+  human-vetted public Markdown and an owner-only Seravo-0 knowledge index. No automatic
+  model connection, commit or public upload is performed.
 
 It does not include any AI model, network controller integration or the author's real configuration. Start with the [safe adopter workflow](#safe-adopter-workflow) and [INFORMATION_CHECKLIST.md](INFORMATION_CHECKLIST.md), then use [PROMPT_GUIDE.md](PROMPT_GUIDE.md) to review adaptations with an assistant.
 
@@ -34,6 +37,7 @@ src/
   wol_healer.py              Wake-on-LAN for wake_required nodes, dry-run unless --apply
   daily_status.py            the daily report
   project_monitor.py         read-only local repo/evidence assessment; writes project status
+  docs_publish.py            private-to-public Markdown staging, review checks and local index
 config/
   fleet.env.example          your ntfy topic and site name
   fleet_manifest.example.json  your inventory, by role
@@ -43,6 +47,13 @@ tests/                       standard-library unittest checks
 ```
 
 ## Safe adopter workflow
+
+For private mesh/farm.net/Seravo-0 knowledge, follow the
+[two-tier documentation workflow](../docs/private-public-docs.md).
+`python3 fleetctl.py docs --help` lists the local-only `stage`, `apply`, `check` and
+`index` actions. Private publishing configuration is separate from adopter userconfig;
+it is never included in deployments. Configure `documentation_publish_config` in the
+private maintenance policy or reports intentionally remain at ATTENTION.
 
 Review the [threat model](../docs/monitoring-and-protection.md#adopter-threat-model) first. Python 3.9+ uses only the standard library; applied installation needs Linux, a systemd user session and writable user-owned directories. Remote adoption additionally needs OpenSSH `ssh`, `scp`, `ssh-keyscan`/`ssh-keygen` for explicit fingerprint trust, key-based login and remote Python/systemd. No root, sudo, passwords or agent forwarding are used. This is an operator-run workflow, not unattended deployment.
 

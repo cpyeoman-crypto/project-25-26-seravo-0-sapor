@@ -70,6 +70,16 @@ Installing or connecting does not approve AI actions, controller changes, unatte
 
 ## Local project maintenance
 
+### Private and public knowledge
+
+The [two-tier documentation workflow](private-public-docs.md) keeps sensitive
+mesh/farm.net/Seravo-0 sources, redaction maps and the knowledge index local. The shipped
+publisher stages masked Markdown; explicit human-reviewed apply updates public files
+without committing or pushing. It does not configure actual model access.
+The tool enforces source/output freshness and coverage checks. Incomplete redaction,
+structural inference and downstream prompt injection still require human review and a
+separately secured read-only retrieval adapter; passing hashes are not a privacy proof.
+
 ### What is implemented
 
 `starter-kit/src/project_monitor.py` is a standard-library, read-only **local repository/evidence checker**. It reads maintenance policy configuration, tracked/non-ignored new documentation and local evidence; it writes a derived status report to `state/project_status.json`. Approved document hashes live in **evidence `docs`**, not in the maintenance configuration. “Read-only” means no network/device changes, command execution from input or external service polling; writing the report is its explicit local side effect.
@@ -95,6 +105,7 @@ The maintenance configuration has these fields:
 | `max_age_seconds` | Positive numeric evidence lifetime, at most 86400 seconds; example/default is one day. |
 | `required_checks` | Nonempty unique list of check IDs. Example: `unit-tests`, `syntax`, `privacy`, `connector-compatibility`. |
 | `connectors` | Map including `ntfy` and `rave`; each policy has a boolean `implemented`. Example: ntfy true, Rave false. This is implementation policy, not a health observation. |
+| `documentation_publish_config` | Absolute path to the owner-only, local publisher configuration outside the public checkout. Null/missing means unconfigured and requires attention. Changed, uncovered, invalid or older-than-one-day publication evidence also requires attention; see the [two-tier contract](private-public-docs.md). |
 
 #### Evidence manifest contract
 

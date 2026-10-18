@@ -1,5 +1,6 @@
 {
   "max_age_seconds": 86400,
+  "documentation_publish_config": null,
   "required_checks": ["unit-tests", "syntax", "privacy", "connector-compatibility"],
   "connectors": {
     "ntfy": {"implemented": true},

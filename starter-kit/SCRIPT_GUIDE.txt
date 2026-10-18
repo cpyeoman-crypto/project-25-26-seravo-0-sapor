@@ -43,7 +43,7 @@ PYTHON RUNTIME SCRIPTS
 ======================
 
 fleetctl.py — standard-library adopter and owned-file lifecycle
-  Public CLI: init, check, connect, deploy, status, uninstall.
+  Public CLI: init, check, connect, deploy, status, uninstall, docs.
     --userconfig PATH loads private JSON; explicit flags override saved values.
     Names: --kit-name, --unit-prefix (default fleet), --hub-label,
     --client-label, --node-name; --role hub|client selects units.
@@ -110,6 +110,37 @@ fleetctl.py — standard-library adopter and owned-file lifecycle
     separately review retained private/modified data; never recursively delete.
   Links: README.md#safe-adopter-workflow;
          ../docs/monitoring-and-protection.md#adopter-threat-model.
+
+src/docs_publish.py — private Markdown staging, re-scan and local knowledge index
+  CLI (via fleetctl wrapper): python3 fleetctl.py docs <stage|apply|check|audit|index> --config /abs/private/docs-config.json [--reviewed]
+  Inputs: owner-only private publish config and redaction map outside the public
+          checkout; explicit source→target Markdown mapping; private/public roots
+          and local stage directory.
+  Outputs: staged rendered Markdown, review.diff, manifest.json, vetted.json,
+           audit.json and knowledge-index.json under the private stage path;
+           nonzero exit on any privacy/review/permission failure.
+  Blocks:
+    - load/secure: enforce owner-only files and secure directories, reject
+      symlinks/overlaps/publicly tracked config paths and unsafe mappings.
+    - render/scan: remove private blocks, apply public-only replacements,
+      reject malformed markers, mask known identifiers and scan for surviving
+      private terms/patterns without echoing matched values.
+    - stage: render mapped files into a fresh review directory, record baseline
+      hashes and sanitised diff for human approval; never writes public files.
+    - apply (--reviewed required): re-render and re-scan, verify staged and
+      baseline consistency, refuse drift, replace mapped public files atomically,
+      re-audit resulting public tree, then write vetted evidence.
+    - audit/check: scan current public Markdown and evaluate vetted freshness/
+      full coverage; prior approval never bypasses re-scan.
+    - index: generate a local two-tier document index (private/public metadata,
+      title/hash/mtime/tier, knowledge_only=true). This is data only.
+  Side effects: local file reads/writes only. No network, no command execution
+                from Markdown and no model invocation/publishing.
+  Prerequisites: private workflow and permissions prepared outside the public
+                 repository; reviewed redaction map and explicit document mapping.
+  Limits: pattern scans cannot guarantee zero leakage or prevent inference.
+          Human review remains mandatory before public publishing.
+  Links: ../docs/private-public-docs.md; ../docs/workflow.md.
 
 src/resolver.py — imported identity-first resolver; no standalone CLI
   Inputs: manifest JSON, local neighbour output, optional Tailscale JSON,
@@ -388,7 +419,7 @@ install.sh — compatible local wrapper; never enables timers
 build_package.sh — build a distributable archive of public kit content
   CLI: ./build_package.sh
   Inputs: fleetctl.PUBLIC's exact runtime whitelist, plus the shipped
-          README/prompt/checklist/TXT guide, five explicitly named test files
+          README/prompt/checklist/TXT guide, six explicitly named test files
           and the five named systemd service/timer template pairs.
           No runtime state, actual config or arbitrary directory/glob content.
   Outputs: starter-kit/fleet-kit.zip, replacing any archive of that name.
@@ -410,4 +441,6 @@ After any script change, compare this inventory and block descriptions with the
 actual source. Update schema/CLI/timer examples together. Follow the root
 ../README.md#repository-maintenance-conditions and the local maintenance contract
 at ../docs/monitoring-and-protection.md#local-project-maintenance; approve
-documentation SHA256 only after review.
+documentation SHA256 only after review. Re-scan staged/current public Markdown
+for each publish cycle, including previously approved files. If privacy checks
+fail, correct source/map and re-stage before updating public docs.
