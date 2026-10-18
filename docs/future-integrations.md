@@ -10,6 +10,10 @@ Everything on this page is **planned or at idea stage**. Nothing here is live. E
 4. **State-change alerts only,** through the same ntfy pipeline. See [ntfy-alerts.md](ntfy-alerts.md).
 5. **Safety before convenience.** Anything that can affect heat, power or physical access needs a manual override that does not depend on the AI or the network.
 
+## Rave: planned, disabled
+
+No verified Rave connector was found. Do not infer a product, API or operational integration from the name. Before implementing an adapter, identify the exact interface/product/version and read-only schema, the authentication/scopes/private credential and trust requirements, and the privacy/data-flow/retention/consent policy. These [exact outstanding prerequisites](monitoring-and-protection.md#connectors-and-rave) keep the maintenance connector disabled. Configuration metadata alone is not a connector or successful observation.
+
 ## Overview
 
 ```mermaid

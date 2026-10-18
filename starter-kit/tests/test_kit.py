@@ -1,9 +1,12 @@
 import json
+import io
 import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from contextlib import redirect_stdout
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 os.environ["NTFY_DRY_RUN"] = "1"
@@ -14,37 +17,48 @@ import ntfy_notify as ntfy  # noqa: E402
 import resolver  # noqa: E402
 import wol_healer  # noqa: E402
 
-NEIGH = """\
-192.0.2.10 dev eth0 lladdr AA:BB:CC:DD:EE:01 REACHABLE
-192.0.2.11 dev eth0  FAILED
-192.0.2.12 dev eth0 lladdr aa-bb-cc-dd-ee-02 STALE
+TEST_DIR = Path(tempfile.gettempdir())
+HUGE_INT = 10 ** 400
+NESTED_JSON = '{"nested":' + "[" * 10000 + "0" + "]" * 10000 + "}"
+OVERSIZED_JSON = '{"padding":"' + " " * (1024 * 1024) + '"}'
+LAN, FAILED, SECOND_LAN, LAST_KNOWN, MESH = (
+    f"127.0.0.{number}" for number in (10, 11, 12, 20, 30)
+)
+MAC, SECOND_MAC = (
+    ":".join(f"{byte:02x}" for byte in bytes((2, 0, 0, 0, 0, number)))
+    for number in (1, 2)
+)
+NEIGH = f"""\
+{LAN} dev eth0 lladdr {MAC.upper()} REACHABLE
+{FAILED} dev eth0  FAILED
+{SECOND_LAN} dev eth0 lladdr {SECOND_MAC.replace(':', '-')} STALE
 """
 
 
 class ResolverTests(unittest.TestCase):
     def test_normalize_mac(self):
-        self.assertEqual(resolver.normalize_mac("AA-BB-CC-DD-EE-01"), "aa:bb:cc:dd:ee:01")
-        self.assertEqual(resolver.normalize_mac("aabbccddee01"), "aa:bb:cc:dd:ee:01")
+        self.assertEqual(resolver.normalize_mac(MAC.upper().replace(":", "-")), MAC)
+        self.assertEqual(resolver.normalize_mac(MAC.replace(":", "")), MAC)
         self.assertIsNone(resolver.normalize_mac("nope"))
 
     def test_parse_neighbor_table_skips_failed(self):
         table = resolver.parse_neighbor_table(NEIGH)
-        self.assertEqual(table["aa:bb:cc:dd:ee:01"], ["192.0.2.10"])
-        self.assertEqual(table["aa:bb:cc:dd:ee:02"], ["192.0.2.12"])
-        self.assertNotIn("192.0.2.11", sum(table.values(), []))
+        self.assertEqual(table[MAC], [LAN])
+        self.assertEqual(table[SECOND_MAC], [SECOND_LAN])
+        self.assertNotIn(FAILED, sum(table.values(), []))
 
     def test_mac_beats_mesh_beats_last_known(self):
-        node = {"macs": ["aa:bb:cc:dd:ee:01"], "mesh_name": "box", "last_known_address": "198.51.100.1"}
+        node = {"macs": [MAC], "mesh_name": "box", "last_known_address": LAST_KNOWN}
         neighbors = resolver.parse_neighbor_table(NEIGH)
         always = lambda addr: True
-        self.assertEqual(resolver.resolve(node, neighbors, {"box": "203.0.113.5"}, always).channel, "lan")
-        self.assertEqual(resolver.resolve(node, {}, {"box": "203.0.113.5"}, always).channel, "mesh")
+        self.assertEqual(resolver.resolve(node, neighbors, {"box": MESH}, always).channel, "lan")
+        self.assertEqual(resolver.resolve(node, {}, {"box": MESH}, always).channel, "mesh")
         self.assertEqual(resolver.resolve(node, {}, {}, always).channel, "last-known")
         self.assertIsNone(resolver.resolve(node, {}, {}, lambda addr: False))
 
 
 class PollTests(unittest.TestCase):
-    manifest = {"nodes": [{"name": "a", "role": "r", "macs": ["aa:bb:cc:dd:ee:01"]}]}
+    manifest = {"nodes": [{"name": "a", "role": "r", "macs": [MAC]}]}
 
     def run_poll(self, previous, up, now):
         neighbors = resolver.parse_neighbor_table(NEIGH)
@@ -76,12 +90,61 @@ class PollTests(unittest.TestCase):
         self.assertEqual([a[0] for a in alerts], ["node_down"])
 
     def test_stale_heartbeat(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(dir=TEST_DIR) as tmp:
             Path(tmp, "a.json").write_text(json.dumps({"epoch": 0}))
             manifest = {"heartbeat_dir": tmp, "heartbeat_max_age_min": 15, "nodes": self.manifest["nodes"]}
             neighbors = resolver.parse_neighbor_table(NEIGH)
             _, alerts = fleet_poll.poll_once(manifest, {}, neighbors, {}, lambda a, p: True, 3600)
             self.assertEqual([a[0] for a in alerts], ["stale"])
+
+    def test_missing_and_malformed_heartbeats_mark_reachable_node_stale(self):
+        with tempfile.TemporaryDirectory(dir=TEST_DIR) as directory:
+            path = Path(directory) / "a.json"
+            manifest = {"heartbeat_dir": directory, "heartbeat_max_age_min": 15,
+                        "nodes": self.manifest["nodes"]}
+            for raw in (None, "not-json", "[]", "null", "false", "123", '"text"',
+                        "{}", '{"epoch": true}', '{"epoch": "1000"}',
+                        '{"epoch": 3601}'):
+                with self.subTest(raw=raw):
+                    if raw is not None:
+                        path.write_text(raw, encoding="utf-8")
+                    state, alerts = fleet_poll.poll_once(
+                        manifest, {}, resolver.parse_neighbor_table(NEIGH), {},
+                        lambda address, port: True, 3600
+                    )
+                    self.assertTrue(state["a"]["up"])
+                    self.assertTrue(state["a"]["stale"])
+                    self.assertEqual(state["a"]["checked_at"], 3600)
+                    self.assertEqual([alert[0] for alert in alerts], ["stale"])
+
+    def test_fresh_heartbeat_does_not_mark_reachable_node_stale(self):
+        with tempfile.TemporaryDirectory(dir=TEST_DIR) as directory:
+            Path(directory, "a.json").write_text(json.dumps({"epoch": 3590}), encoding="utf-8")
+            manifest = {"heartbeat_dir": directory, "nodes": self.manifest["nodes"]}
+            state, alerts = fleet_poll.poll_once(
+                manifest, {}, resolver.parse_neighbor_table(NEIGH), {},
+                lambda address, port: True, 3600
+            )
+            self.assertFalse(state["a"]["stale"])
+            self.assertEqual(alerts, [])
+
+    def test_giant_nested_and_oversized_heartbeat_data_fail_closed(self):
+        with tempfile.TemporaryDirectory(dir=TEST_DIR) as directory:
+            path = Path(directory) / "a.json"
+            manifest = {"heartbeat_dir": directory, "nodes": self.manifest["nodes"]}
+            for kind, raw in (
+                ("giant epoch", json.dumps({"epoch": HUGE_INT})),
+                ("deeply nested", NESTED_JSON),
+                ("oversized", OVERSIZED_JSON),
+            ):
+                with self.subTest(kind=kind):
+                    path.write_text(raw, encoding="utf-8")
+                    state, alerts = fleet_poll.poll_once(
+                        manifest, {}, resolver.parse_neighbor_table(NEIGH), {},
+                        lambda address, port: True, 3600
+                    )
+                    self.assertTrue(state["a"]["stale"])
+                    self.assertEqual([alert[0] for alert in alerts], ["stale"])
 
 
 class NtfyTests(unittest.TestCase):
@@ -98,19 +161,24 @@ class NtfyTests(unittest.TestCase):
         self.assertEqual(payload["topic"], "t")
 
     def test_dry_run_sends_nothing(self):
-        self.assertTrue(ntfy.send("test", "hello"))
+        with patch.object(ntfy, "compose", return_value="safe test message"), \
+                patch.object(ntfy, "site_name", return_value="test-site"), \
+                patch.object(ntfy.urllib.request, "urlopen") as network, \
+                redirect_stdout(io.StringIO()):
+            self.assertTrue(ntfy.send("test", "hello"))
+        network.assert_not_called()
 
 
 class OtherTests(unittest.TestCase):
     def test_magic_packet(self):
-        packet = wol_healer.magic_packet("aa:bb:cc:dd:ee:01")
+        packet = wol_healer.magic_packet(MAC)
         self.assertEqual(len(packet), 102)
         self.assertEqual(packet[:6], b"\xff" * 6)
 
     def test_wake_only_wake_required(self):
         manifest = {"nodes": [
-            {"name": "x", "macs": ["aa:bb:cc:dd:ee:01"], "wake_required": True},
-            {"name": "y", "macs": ["aa:bb:cc:dd:ee:02"], "wake_required": False},
+            {"name": "x", "macs": [MAC], "wake_required": True},
+            {"name": "y", "macs": [SECOND_MAC], "wake_required": False},
         ]}
         state = {"x": {"up": False}, "y": {"up": False}}
         self.assertEqual([n["name"] for n in wol_healer.candidates(manifest, state)], ["x"])

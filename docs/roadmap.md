@@ -1,5 +1,7 @@
 # Roadmap: clients to come
 
+Maintenance now has a [read-only local repository/evidence checker](monitoring-and-protection.md#local-project-maintenance); it does not implement the wider integrations below. **Rave remains planned and disabled** because no verified connector was found: exact interface, authentication and privacy prerequisites are still missing.
+
 Status per client is in [fleet-clients.md](fleet-clients.md). This page groups what is still to build.
 
 ## In progress

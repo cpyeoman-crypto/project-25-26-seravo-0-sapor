@@ -1,0 +1,10 @@
+[Unit]
+Description=Check local project maintenance evidence hourly
+
+[Timer]
+OnBootSec=2min
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

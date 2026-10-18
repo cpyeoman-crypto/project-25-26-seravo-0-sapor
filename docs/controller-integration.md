@@ -2,6 +2,8 @@
 
 How the network controller's API, the mesh overlay and ntfy fit together. Endpoint paths, addresses, segment IDs, access point names, node names, file names and credentials are `[REDACTED]` or replaced by placeholders.
 
+**Design/private-system description, not a shipped connector.** No Omada API wrapper or controller/Windows relay is included in this public starter kit. The local [project monitor](monitoring-and-protection.md#local-project-maintenance) reads reviewed evidence and cannot establish live controller health by itself. Rave is also planned/disabled; its [missing prerequisites](monitoring-and-protection.md#connectors-and-rave) must be resolved before implementing any adapter.
+
 ## 1. The controller API as the physical-layer sensor
 
 Small Python wrappers talk to the TP-Link Omada controller through its local API. They log in with a dedicated account, and they trust the controller's self-signed certificate by pinning it explicitly. TLS verification is never switched off.

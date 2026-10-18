@@ -1,0 +1,8 @@
+{
+  "max_age_seconds": 86400,
+  "required_checks": ["unit-tests", "syntax", "privacy", "connector-compatibility"],
+  "connectors": {
+    "ntfy": {"implemented": true},
+    "rave": {"implemented": false}
+  }
+}

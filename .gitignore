@@ -8,6 +8,7 @@ archive/transcripts/*.jsonl
 
 starter-kit/config/fleet.env
 starter-kit/config/fleet_manifest.json
+starter-kit/config/maintenance.json
 starter-kit/state/*
 !starter-kit/state/.gitkeep
 starter-kit/fleet-kit.zip

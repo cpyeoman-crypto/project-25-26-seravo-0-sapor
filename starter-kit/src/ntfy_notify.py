@@ -10,13 +10,17 @@ message is printed and nothing is sent.
 """
 import json
 import os
+import re
 import socket
 import time
 import urllib.error
 import urllib.request
+import urllib.parse
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
+
+import resolver
 
 DEFAULT_SERVER = "https://ntfy.sh"
 DEFAULT_ENV_FILE = "./config/fleet.env"
@@ -131,7 +135,21 @@ def _spool_path():
     return Path(setting("NTFY_SPOOL", f"/var/tmp/fleet-kit-ntfy-spool-{os.getuid()}.jsonl"))
 
 
+def validate_delivery(payload):
+    endpoint = urllib.parse.urlsplit(server())
+    resolver.validate_address(endpoint.hostname)
+    if (endpoint.scheme not in ("https", "http") or endpoint.username or endpoint.password
+            or (endpoint.port is not None and not 0 < endpoint.port <= 65535)):
+        raise ValueError("invalid notification endpoint")
+    if not isinstance(payload, dict) or not isinstance(payload.get("topic"), str) or not payload["topic"]:
+        raise ValueError("invalid notification topic")
+    for value in (payload["topic"], setting("NTFY_TOKEN") or ""):
+        if re.search(r"<|>|(?:^|[-_.:/])x+(?:$|[-_.:/])", value, re.I):
+            raise ValueError("notification placeholder")
+
+
 def _post(payload, timeout=10):
+    validate_delivery(payload)
     request = urllib.request.Request(
         server() + "/",
         data=json.dumps(payload).encode("utf-8"),
@@ -154,8 +172,8 @@ def _spool(payload):
         tmp = path.with_name(path.name + f".{os.getpid()}.tmp")
         tmp.write_text("\n".join(lines[-SPOOL_MAX_LINES:]) + "\n", encoding="utf-8")
         os.replace(tmp, path)
-    except OSError as exc:
-        print(f"[-] Unable to spool message: {exc}")
+    except OSError:
+        print("[-] Unable to spool message; check private spool permissions.")
 
 
 def flush_spool():
@@ -172,10 +190,11 @@ def flush_spool():
         try:
             _post(json.loads(line))
             delivered += 1
-        except ValueError:
-            continue  # a corrupt line must not block every later message
+        except (ValueError, RecursionError):
+            print("[-] Invalid queued notification retained; review the private spool.")
+            remaining.append(line)
         except (urllib.error.URLError, OSError):
-            remaining = lines[index:]
+            remaining.extend(lines[index:])
             break
     try:
         if remaining:
@@ -211,19 +230,23 @@ def send(kind, body="", *, sleep=time.sleep, **kwargs):
         print(f"[dry-run] ntfy priority={payload['priority']} title={payload['title']!r}\n{payload['message']}\n")
         return True
     try:
+        validate_delivery(payload)
+    except ValueError:
+        print("[-] Notification configuration invalid or non-operational placeholder; nothing sent.")
+        return False
+    try:
         flush_spool()
-    except Exception:
-        pass
-    last_error = None
+    except (OSError, ValueError):
+        print("[-] Unable to flush notification spool.")
     for delay in RETRY_DELAYS:
         if delay:
             sleep(delay)
         try:
             _post(payload)
             return True
-        except (urllib.error.URLError, OSError) as exc:
-            last_error = exc
-    print(f"[-] ntfy delivery failed ({last_error}); message spooled for retry.")
+        except (urllib.error.URLError, OSError):
+            continue
+    print("[-] ntfy delivery failed; attempting private spool for retry.")
     _spool(payload)
     return False
 

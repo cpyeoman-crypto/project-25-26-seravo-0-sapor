@@ -2,6 +2,8 @@
 
 [ntfy](https://ntfy.sh) is an open-source push-notification service. Seravo-0 and its scheduled jobs publish to a private topic, and the operator's phone (and any approver's phone) subscribes to it. It is the network's voice in the field. No inbound port is opened on the network: everything is outbound HTTPS from the hub to the notification server.
 
+**Scope:** the event catalogue and approval flow describe the broader architecture. The public kit provides an outbound publisher, fleet alerts and a daily report, not a phone approval receiver or controller watcher. Delivery requires explicit private configuration; installed units remain disabled. The [local project monitor](monitoring-and-protection.md#local-project-maintenance) does not contact ntfy.
+
 Topic names, server settings and tokens are `[REDACTED]`. A topic name on the public server works like a password, so treat it as one.
 
 ## Design goals
@@ -10,11 +12,13 @@ Topic names, server settings and tokens are `[REDACTED]`. A topic name on the pu
 |---|---|
 | One look for every message | A single shared formatter builds every push: emoji, tags, priority, bold headline, bullets, meters, and a footer with site, host and time. |
 | One delivery path | Every job calls the same send function, so retries, size limits and the spool behave the same everywhere. |
-| Never lose a report | Failed sends are retried three times (immediately, then after 2 s and 6 s), then written to a small on-disk spool. The spool is flushed on the next send. The daily report warns if messages are waiting in it. |
+| Bounded retry, not guaranteed delivery | Failed sends are tried three times (immediately, then after 2 s and 6 s), then spooled locally. The next non-dry-run send attempts to flush the spool. It retains at most 200 messages and disk writes can fail. The public daily report does not inspect that backlog. |
 | UTF-8 safe | Messages go through ntfy's JSON publish API, not HTTP headers, so titles and bodies can carry emoji and any language. |
 | Fits a phone | Bodies are capped at about 3.8 KB and cut at a line break with a "truncated" marker. |
 | Quiet by design | Alerts fire on state change only, not on every check. A node that stays down gets one reminder a day, not one an hour. |
 | Priority means something | Priority is chosen by the kind of event, so urgent only ever means urgent. |
+
+The kit validates delivery settings before flushing and validates **every post**, including queued messages, before opening the network. Non-operational endpoint/topic/token placeholders cannot bypass validation through the spool. Invalid/corrupt queued entries are retained for private review with a generic warning, without printing their payload or exception content.
 
 ## Message anatomy
 

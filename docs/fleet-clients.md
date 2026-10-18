@@ -4,6 +4,8 @@ Every client is described by its function. Hardware is named by vendor and produ
 
 **How status was decided.** It comes from the project's own audit records and from past planning chats. Chat transcripts are plans, not proof, so anything only seen in a chat is marked *planned* or *in progress*. Where a recent audit could not verify a client, it says so.
 
+These are historical role descriptions, not current observations supplied with this public repository. “Active” must not be promoted to fresh monitoring evidence. The [project monitor](monitoring-and-protection.md#local-project-maintenance) requires explicit, timely local evidence; the starter kit does not deploy these roles or their broader automation.
+
 | Status | Meaning |
 |---|---|
 | **Active** | Seen working in a recent audit or live job record. |

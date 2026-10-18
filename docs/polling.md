@@ -2,6 +2,8 @@
 
 Nothing in this network is trusted to report on its own. The hub polls, the clients send heartbeats, and several independent watchers cross-check each other. This page describes the shape of that system. Addresses, schedules in exact form, hostnames and commands are `[REDACTED]`.
 
+**Scope:** this is the broader target/private-system timetable, not a list of jobs deployed by this public repository. The kit supplies two-minute fleet polling, five-minute heartbeat/healer units and a daily report; the optional project check is hourly. Installation leaves every timer disabled until a person enables it. See [project maintenance](monitoring-and-protection.md#local-project-maintenance) and the [script guide](../starter-kit/SCRIPT_GUIDE.txt).
+
 ## The four ways information moves
 
 | Pattern | Direction | Used for |
@@ -37,7 +39,7 @@ A fifth path runs sideways: the Windows hub watches the switch mirror port and h
 | Online-but-not-polled gap check | Fleet bootstrap | 08:17 | Push on change only |
 | Weekly maintenance and auditor review | Scheduled | Weekly | Wake-up beforehand |
 
-All of these run as systemd timers. The stack report also flags any timer that has stalled or whose last run failed.
+The broader design schedules these with systemd timers. The public kit does not include the stack report or automatically inspect live service/timer results; reviewed evidence must supply the required maintenance checks.
 
 ## How a client is found: identity before address
 
@@ -48,7 +50,7 @@ Before any probe or wake, the hub resolves the client:
 3. **Reviewed manifest.** The last known address from the inventory, treated as stale.
 4. **Old records.** Used only as a hint and never override live evidence.
 
-If a client cannot be resolved, or its record conflicts with another, it is marked unresolved and **receives no work**. A person has to confirm it first.
+The design requires conflicted or unresolved clients to receive no work. The kit's resolver only chooses a reachable address in the order above; it does not authenticate a host or implement the broader conflict/adoption workflow. Wake-on-LAN is separate and opt-in, using the reviewed manifest.
 
 ```mermaid
 sequenceDiagram
@@ -77,7 +79,7 @@ sequenceDiagram
 
 - **Read first.** Pollers read. Writes need an explicit apply step and a backup.
 - **Change, not state.** An alert fires when something changes, not each time it is checked.
-- **Seed, do not shout.** The first run records the current state and sends nothing, so installing a watcher never produces a flood.
+- **Seed reachability state.** The kit's first run records up/down state without up/down alerts. A reachable client with a configured heartbeat that is missing, invalid or old can still produce a stale-heartbeat alert on that run.
 - **Wake only what may be woken.** Only clients marked wake-required are woken. Mobile clients are woken only on explicit request.
 - **Fail closed.** Conflicting or missing evidence stops the action and asks a person.
 - **Dry-run by default.** Optimisers and healers print what they would do until an apply flag is given.
@@ -93,3 +95,5 @@ sequenceDiagram
 ## Build your own
 
 The [starter kit](../starter-kit/README.md) has a small, tested version of the poll loop (identity-first resolver, state-change alerts, heartbeat staleness check, wake-on-LAN that is dry-run by default).
+
+The project checker reads local evidence only; it does not poll the timetable above. Fleet polls record per-node `checked_at`, and the daily report must compare fresh state with the expected inventory rather than infer health from an empty or old snapshot. Missing/invalid/stale project evidence is `ATTENTION`, not an implicit success.

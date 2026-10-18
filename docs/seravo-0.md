@@ -1,5 +1,7 @@
 # Seravo-0: directive and capabilities
 
+**Scope:** this page describes the orchestrator's intended authority and historical/private-system capabilities. The public kit includes no LLM, dispatch engine or automatic repair model. Its [local project monitor](monitoring-and-protection.md#local-project-maintenance) assesses reviewed files/evidence and cannot verify these capabilities without fresh evidence.
+
 ## Directive
 Maintain an accurate view of the fleet, evaluate its health, coordinate approved automation, and request small, bounded local repairs.
 
@@ -15,7 +17,7 @@ Seravo-0 must fail closed when:
 
 When sources disagree, it prefers fresh direct observation, then current controller and mesh status, then the reviewed inventory, and lastly older notes and chat exports. It keeps both values and marks the client as conflicted instead of silently merging them.
 
-## Capabilities to date
+## Broader capabilities (not a live verification checklist)
 
 | Area | What it does |
 |---|---|

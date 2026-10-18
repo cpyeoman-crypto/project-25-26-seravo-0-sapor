@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 
 import ntfy_notify as ntfy
+import project_monitor
 import resolver
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -27,6 +28,7 @@ REMIND_AFTER_SECONDS = 24 * 3600
 
 
 def tcp_probe(address, port, timeout=2.0):
+    resolver.validate_address(address)
     try:
         with socket.create_connection((address, port), timeout=timeout):
             return True
@@ -54,10 +56,10 @@ def heartbeat_age_minutes(heartbeat_dir, name, now):
         return None
     path = Path(heartbeat_dir) / f"{name}.json"
     try:
-        stamp = json.loads(path.read_text(encoding="utf-8")).get("epoch")
-    except (OSError, ValueError):
+        stamp = project_monitor.read_json(path).get("epoch")
+    except (OSError, ValueError, TypeError, AttributeError, RecursionError):
         return None
-    return None if stamp is None else (now - float(stamp)) / 60.0
+    return (now - stamp) / 60.0 if project_monitor.fresh(stamp, now, float("inf")) else None
 
 
 def poll_once(manifest, previous, neighbors, mesh_peers, probe_port, now):
@@ -78,6 +80,7 @@ def poll_once(manifest, previous, neighbors, mesh_peers, probe_port, now):
             "since": before.get("since", now) if before.get("up") == up else now,
             "notified": before.get("notified", now),
             "stale": False,
+            "checked_at": now,
         }
         if up and before.get("up") is False:
             alerts.append(("node_up", name, node, f"{node.get('role', 'node')} is reachable again over **{found.channel}**."))
@@ -91,10 +94,10 @@ def poll_once(manifest, previous, neighbors, mesh_peers, probe_port, now):
             alerts.append(("node_down", name, node, f"Still down after {hours:.0f} h."))
             entry["notified"] = now
         age = heartbeat_age_minutes(hb_dir, name, now) if up else None
-        if age is not None and age > max_age:
+        if up and hb_dir and (age is None or age > max_age):
             entry["stale"] = True
             if not before.get("stale"):
-                alerts.append(("stale", name, node, f"Reachable, but no heartbeat for {age:.0f} min."))
+                alerts.append(("stale", name, node, "Reachable, but heartbeat missing, invalid or stale."))
         state[name] = entry
     return state, alerts
 
@@ -112,16 +115,18 @@ def main(argv=None):
     state, alerts = poll_once(
         manifest, previous, resolver.read_neighbors(), resolver.read_mesh_peers(), tcp_probe, now
     )
+    delivery_failed = False
     for kind, name, node, text in alerts:
         details = [("Node", name), ("Role", node.get("role")), ("Wake required", node.get("wake_required", False))]
         if args.send:
-            ntfy.send(kind, text, headline=f"{ntfy.STYLES[kind].label} · {name}", details=details)
+            if not ntfy.send(kind, text, headline=f"{ntfy.STYLES[kind].label} · {name}", details=details):
+                delivery_failed = True
         else:
             print(f"[dry-run alert] {kind}: {name}: {text}")
     save_state(args.state, state)
     up = sum(1 for entry in state.values() if entry["up"])
     print(f"[+] polled {len(state)} nodes, {up} up, {len(alerts)} state change(s)")
-    return 0
+    return 1 if delivery_failed else 0
 
 
 if __name__ == "__main__":

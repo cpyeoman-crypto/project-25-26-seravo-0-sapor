@@ -2,6 +2,8 @@
 
 These are what arrives on the phone, rebuilt with invented values. Real client names, addresses, hardware identities, access point names and counts are replaced by `[REDACTED]` or by placeholders such as `client-a`. The layout, wording and priorities are real. Each block shows the notification title, the priority, and the markdown body.
 
+**Illustrations, not current evidence.** Most blocks describe the broader private/target system, not scripts shipped here. The kit does not implement controller, AI, vault, satellite, approval or spool-backlog reporting. Its daily report reads local project status and fleet evidence; see [project maintenance](monitoring-and-protection.md#local-project-maintenance).
+
 Background: [ntfy-alerts.md](ntfy-alerts.md). Timetable: [polling.md](polling.md).
 
 ## Events (sent when something changes)
@@ -156,7 +158,7 @@ client-a, client-b, client-c
 ⏱️ [n] ms · 💧 [n]% drops · 🌲 [n]% obstructed
 ```
 
-### Daily status, 07:10
+### Broader-system daily status, 07:10 (illustrative)
 **Priority** 3 when green, 4 when something needs attention
 
 ```
@@ -187,6 +189,18 @@ With a problem:
 
 - 🕰️ Controller telemetry snapshot is [n] h old
 - 📨 [n] message(s) waiting in the retry spool
+```
+
+### Public-kit maintenance attention
+
+The kit uses `--project-state` for the local checker output and `--manifest` for expected fleet membership. Required evidence that is missing, invalid or stale makes project status `ATTENTION`; missing nodes or old/invalid `checked_at` values prevent an all-green fleet report. The project checker exits nonzero for attention. A report must not treat an empty state file as proof that all nodes are green.
+
+Example warning facts (illustrative, not an exact output transcript):
+
+```
+Project: ATTENTION — required maintenance evidence is missing or stale
+Fleet: ATTENTION — an expected node has no fresh checked_at observation
+Rave: planned / disabled — interface, authentication and privacy prerequisites missing
 ```
 
 ### Hardware overview, 07:20

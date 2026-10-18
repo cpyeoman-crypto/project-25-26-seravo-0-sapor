@@ -1,39 +1,39 @@
 {
-  "_comment": "Copy to config/fleet_manifest.json. Names are yours to choose. Describe each node by ROLE. MAC addresses are the stable identity; addresses are only a last resort.",
+  "_comment": "PUBLIC NON-OPERATIONAL EXAMPLE: all x placeholders must be replaced privately before use. Copy to config/fleet_manifest.json; never commit the real file. Names describe roles. MAC addresses are the stable identity; addresses are only a last resort.",
   "heartbeat_dir": "state/heartbeats",
   "heartbeat_max_age_min": 15,
-  "wol_broadcast": "<LAN broadcast address, e.g. the .255 of your subnet>",
+  "wol_broadcast": "x.x.x.x",
   "nodes": [
     {
       "name": "orchestrator",
       "role": "AI orchestrator",
-      "macs": ["<aa:bb:cc:dd:ee:01>"],
-      "mesh_name": "<hostname on your mesh overlay>",
+      "macs": ["xx:xx:xx:xx:xx:xx"],
+      "mesh_name": "x-mesh-host",
       "probe_port": 22,
       "wake_required": false
     },
     {
       "name": "edge-scout-1",
       "role": "Edge scout / console",
-      "macs": ["<aa:bb:cc:dd:ee:02>"],
-      "mesh_name": "<hostname on your mesh overlay>",
+      "macs": ["xx:xx:xx:xx:xx:xx"],
+      "mesh_name": "x-mesh-host",
       "probe_port": 22,
       "wake_required": true
     },
     {
       "name": "windows-hub",
       "role": "Windows hub",
-      "macs": ["<aa:bb:cc:dd:ee:03>"],
-      "mesh_name": "<hostname on your mesh overlay>",
+      "macs": ["xx:xx:xx:xx:xx:xx"],
+      "mesh_name": "x-mesh-host",
       "probe_port": 22,
       "wake_required": true,
-      "last_known_address": "<optional, lowest trust>"
+      "last_known_address": "x.x.x.x"
     },
     {
       "name": "travel-medic",
       "role": "Mobile Linux client",
-      "macs": ["<aa:bb:cc:dd:ee:04>"],
-      "mesh_name": "<hostname on your mesh overlay>",
+      "macs": ["xx:xx:xx:xx:xx:xx"],
+      "mesh_name": "x-mesh-host",
       "probe_port": 22,
       "wake_required": false
     }

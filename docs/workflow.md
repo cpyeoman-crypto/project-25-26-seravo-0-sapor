@@ -1,5 +1,7 @@
 # Workflow: from copy-paste to Ctrl-S to VS Code
 
+**Historical/target workflow:** the public kit does not include an ingest watcher, archival hooks or a command dispatcher. Its [local project checker](monitoring-and-protection.md#local-project-maintenance) reads evidence only. Neither evidence nor archived text authorises execution.
+
 ## Stage 1: copy and paste
 Ask a cloud assistant, copy its command, paste it into a terminal, then paste the output back. It works, but every step is manual, and the history lives only in the browser.
 
@@ -11,7 +13,7 @@ The workflow changed once the useful part became the conversation itself:
 3. It moves the file into the history archive, adding a timestamp if the name already exists so nothing is overwritten.
 4. Seravo-0 can then learn from that history.
 
-The Ingress folder is a one-way drop box: save something into it and it is archived automatically. A second script can scan prompt files for tagged deployment directives. By rule, text found in an ingested file is never trusted as a command, and every action still goes through Seravo-0's checks.
+The proposed Ingress folder is a one-way archival drop box. Tagged deployment text may be indexed for review, but must never be executed or used to trigger commands. Any later action requires a separately reviewed instruction and explicit authorisation outside the ingested content.
 
 ## Stage 3: editor-centred
 Work moved into **VS Code** on the central node, reached from the other clients over SSH:
