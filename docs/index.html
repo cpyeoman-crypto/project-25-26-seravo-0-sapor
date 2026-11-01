@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Seravo - anonymized status</title>
+  <style>
+    body { font: 18px system-ui,sans-serif; background:#101827; color:#e8edf5; margin:0; padding:24px; }
+    main { max-width:1100px; margin:auto; } h1 { font-size:2rem; }
+    #nodes,#incidents { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    article { background:#1b293d; padding:18px; border-radius:12px; overflow-wrap:anywhere; }
+    .online,.resolved { border-left:5px solid #62d69a; }
+    .offline,.pending_review { border-left:5px solid #ffc266; }
+    .blocked,.unknown { border-left:5px solid #d18ef8; }
+    footer,#state { color:#bac8dc; } button { padding:12px; font:inherit; cursor:pointer; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Seravo - anonymized fleet status</h1>
+  <p>No raw notifications, names, addresses, credentials or ownership are published.</p>
+  <button id="refresh" type="button">Refresh</button>
+  <p id="state" role="status">Loading public snapshot...</p>
+  <h2>Clients</h2><section id="nodes" aria-label="Anonymized clients"></section>
+  <h2>Incidents</h2><section id="incidents" aria-label="Anonymized incidents"></section>
+  <footer><p>Stable keyed aliases, not real device names. Snapshot only: this page cannot control devices.
+    Refreshes every minute. A failed refresh retains the previous view and marks it unverified.</p></footer>
+</main>
+<script src="status.js"></script>
+</body>
+</html>
