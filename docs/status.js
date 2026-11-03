@@ -65,6 +65,36 @@
   if (typeof module !== "undefined") module.exports = { validate };
   if (typeof document === "undefined") return;
   let busy = false;
+  const PRIORITY_WORDS = {5: "urgent", 4: "important", 3: "routine", 2: "minor", 1: "minor"};
+  function renderIncidents(rows) {
+    const section = document.getElementById("incidents");
+    if (!rows.length) {
+      const ok = document.createElement("article");
+      ok.className = "resolved";
+      const h = document.createElement("h3");
+      h.textContent = "✅ Nothing waiting for review";
+      const p = document.createElement("p");
+      p.textContent = "The watcher has no open items for the operator right now.";
+      ok.append(h, p);
+      section.replaceChildren(ok);
+      return;
+    }
+    const counts = {};
+    for (const row of rows) counts[row.priority] = (counts[row.priority] || 0) + 1;
+    const card = document.createElement("article");
+    card.className = "pending_review";
+    const h = document.createElement("h3");
+    h.textContent = `📬 ${rows.length} thing${rows.length === 1 ? "" : "s"} waiting for the operator to review`;
+    const p = document.createElement("p");
+    p.textContent = Object.keys(counts).sort((a, b) => b - a)
+      .map(k => `${counts[k]} ${PRIORITY_WORDS[k] || "routine"}`).join(" · ");
+    const note = document.createElement("p");
+    note.className = "meta";
+    note.textContent = "These are flagged notifications a human still needs to look at. " +
+      "Details stay private; only the count and urgency are published.";
+    card.append(h, p, note);
+    section.replaceChildren(card);
+  }
   function render(id, rows) {
     const section = document.getElementById(id);
     section.replaceChildren(...rows.map(row => {
@@ -127,7 +157,7 @@
       if (!response.ok) throw new Error("Public snapshot unavailable");
       const value = validate(await response.json());
       renderEvents(value.events || []);
-      render("incidents", value.incidents);
+      renderIncidents(value.incidents);
       document.getElementById("state").textContent =
         `Snapshot fetched ${new Date().toLocaleTimeString()}. Source freshness is not verified.`;
     } catch {
