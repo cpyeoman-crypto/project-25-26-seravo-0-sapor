@@ -148,6 +148,54 @@ The following are broader design/private-system descriptions, not assurances tha
 - **Credential hygiene goals.** Keep passwords, keys and private certificates out of tracked files and history. The broader design calls for an owner-only credential loader, secret quarantine, independently verified SSH host keys and explicit controller-certificate trust. Those mechanisms and any historical cleanup are not guaranteed by this public kit.
 - **Still to come.** Edge scout clients, the edge enforcer, burst compute and spare nodes (asleep by default, woken for heavy model work), the backup travel router with a cellular hotspot, and the creative and failover node that keeps the writing workspace apart from the security mesh. See the [roadmap](docs/roadmap.md).
 
+## What arrives on the phone (ntfy showcase)
+
+The network's voice is [ntfy](https://ntfy.sh): outbound HTTPS pushes from the hub and every client, styled by one shared formatter so urgent only ever means urgent. **Every value below is invented or `[REDACTED]`**; layout, wording, emoji and priorities are real. Topic names, servers and tokens are secrets and never shown. Full anatomy and event catalogue: [docs/ntfy-alerts.md](docs/ntfy-alerts.md); more examples: [docs/report-examples.md](docs/report-examples.md).
+
+**A quiet morning — every client checks in** (`src/node_pulse.py`, one low-priority digest per day):
+
+> **my-network · NODE PULSE · edge-scout-1** · priority 2 · 🩺 💻
+> ```
+> ## 🩺 NODE PULSE · edge-scout-1
+>
+> all clear
+>
+> - **Uptime** `12d 4h`
+> - **Load** `0.08 / 0.11 / 0.09` (4 CPUs)
+> - **Memory free** `61.3%`
+> - **Disk /** `42.0% used`
+> - **Docker** `3/3 running`
+> - **Overlay** `online, 6/7 peers`
+>
+> *my-network · edge-scout-1 · 2026-01-01 07:00:00 UTC*
+> ```
+
+**Something broke — one alert on the transition, not one per check:**
+
+> **my-network · NODE ALERT · edge-scout-1** · priority 4 · ⚠️ 💻
+> ```
+> ## ⚠️ NODE ALERT · edge-scout-1
+>
+> - disk / at 91.4% used
+> - systemd unit x-backup.service failed
+>
+> *my-network · edge-scout-1 · 2026-01-01 13:37:02 UTC*
+> ```
+
+**And one message when it is fixed:**
+
+> **my-network · NODE RECOVERED · edge-scout-1** · priority 3 · ✅ 💻
+> ```
+> ## ✅ NODE RECOVERED · edge-scout-1
+>
+> - resolved: disk / crossed its usage threshold
+> - resolved: systemd unit x-backup.service failed
+>
+> *my-network · edge-scout-1 · 2026-01-01 14:02:48 UTC*
+> ```
+
+Read it back without unlocking a phone: the [reports widget](starter-kit/src/ntfy_reports.py) polls the same topics read-only and writes the recent messages into a local, git-ignored Markdown report — escaped, topic names withheld, and never treated as instructions. Everything above ships in the [starter kit](starter-kit/README.md): dry-run by default, delivery only after a private topic is configured, bounded retries and a disk spool so a network blip does not drop a report.
+
 ## Software and platform
 
 Linux throughout the core, with a Windows hub. Network hardware is TP-Link Omada; the machines are mostly Dell. Full list in [docs/stack.md](docs/stack.md).
