@@ -21,8 +21,8 @@ NAME = re.compile(r"^[a-z][a-z0-9-]{0,31}$")
 SAFE_PATH = re.compile(r"^[A-Za-z0-9_./~-]+$")
 HOST = re.compile(r"^[a-z_][a-z0-9_-]*@[A-Za-z0-9][A-Za-z0-9.-]*$")
 PRIVATE = ("fleet.env", "fleet_manifest.json", "maintenance.json")
-SCRIPTS = ("daily_status.py", "docs_publish.py", "fleet_poll.py", "heartbeat.py", "ntfy_notify.py",
-           "project_monitor.py", "resolver.py", "wol_healer.py")
+SCRIPTS = ("daily_status.py", "docs_publish.py", "fleet_poll.py", "heartbeat.py", "node_pulse.py",
+           "ntfy_notify.py", "ntfy_reports.py", "project_monitor.py", "resolver.py", "wol_healer.py")
 EXAMPLES = ("fleet.env.example", "fleet_manifest.example.json", "maintenance.example.json")
 PUBLIC = ("fleetctl.py", "install.sh", "requirements.txt") + tuple(
     "src/" + name for name in SCRIPTS
@@ -292,7 +292,7 @@ def bundle(source, opts):
 
 
 def unit_names(opts):
-    return ("heartbeat",) if opts["role"] == "client" else ("poll", "daily", "heal", "project")
+    return ("heartbeat", "pulse") if opts["role"] == "client" else ("poll", "daily", "heal", "project")
 
 
 def units(opts, dest):
@@ -308,9 +308,10 @@ def units(opts, dest):
         ),
         "heartbeat": "src/heartbeat.py --name " + (opts["node_name"] or "unconfigured")
         + " --out " + str(dest / "state/heartbeats" / ((opts["node_name"] or "unconfigured") + ".json")),
+        "pulse": "src/node_pulse.py",
     }
     calendars = {"poll": "*:0/2", "daily": "*-*-* 07:10:00", "heal": "*:0/5",
-                 "project": "hourly", "heartbeat": "*:0/5"}
+                 "project": "hourly", "heartbeat": "*:0/5", "pulse": "*:0/15"}
     result = {}
     for item in unit_names(opts):
         command = commands[item] + (" --send" if opts["send"] and item in ("poll", "daily") else "")
@@ -318,7 +319,7 @@ def units(opts, dest):
         result[stem + ".service"] = (
             "[Unit]\nDescription=" + opts["kit_name"] + " " + label + " " + item
             + "\n\n[Service]\nType=oneshot\nWorkingDirectory=" + str(dest) + "\n"
-            + (env if item in ("poll", "daily", "heal") else "")
+            + (env if item in ("poll", "daily", "heal", "pulse") else "")
             + "ExecStart=/usr/bin/python3 " + command + "\n"
         ).encode()
         result[stem + ".timer"] = (

@@ -313,7 +313,8 @@ class FleetctlTests(unittest.TestCase):
         self.config("fleet.env", "NTFY_TOPIC=valid-topic\n", source)
         self.assertEqual(self.cli(*args, "--include-config", "fleet.env")[0], 0)
         enabled = [cmd for cmd in self.commands() if "enable" in cmd]
-        self.assertEqual(enabled, [["systemctl", "--user", "enable", "--now", "fleet-heartbeat.timer"]])
+        self.assertEqual(enabled, [["systemctl", "--user", "enable", "--now", "fleet-heartbeat.timer"],
+                                   ["systemctl", "--user", "enable", "--now", "fleet-pulse.timer"]])
 
     def test_hub_custom_units_enable_only_poll_daily_without_repo(self):
         source = self.source()

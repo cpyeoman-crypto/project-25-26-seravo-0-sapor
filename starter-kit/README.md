@@ -34,15 +34,17 @@ src/
   resolver.py                MAC first, mesh second, last-known address last
   fleet_poll.py              the poll loop; alerts on state change only; writes state/fleet_status.json
   heartbeat.py               client health file for the hub to collect
+  node_pulse.py              per-node vitals snapshot and state-change alerts, for every client
   wol_healer.py              Wake-on-LAN for wake_required nodes, dry-run unless --apply
   daily_status.py            the daily report
   project_monitor.py         read-only local repo/evidence assessment; writes project status
+  ntfy_reports.py            read-only widget: pulls recent ntfy messages into a local report
   docs_publish.py            private-to-public Markdown staging, review checks and local index
 config/
   fleet.env.example          your ntfy topic and site name
   fleet_manifest.example.json  your inventory, by role
   maintenance.example.json   required checks, age limit and connector implementation policy
-systemd/                     poll, heal, daily, heartbeat and optional hourly project units
+systemd/                     poll, heal, daily, heartbeat, pulse and optional hourly project units
 tests/                       standard-library unittest checks
 ```
 
@@ -135,7 +137,7 @@ Review `python3 fleetctl.py uninstall --userconfig state/x-adopter.json` first; 
    systemctl --user enable --now fleet-poll.timer fleet-daily.timer
    ```
    Lingering is a separate policy decision, not a setup prerequisite; review the threat table before an administrator permits timers after logout.
-9. **On each client** (optional but recommended): `./install.sh client --node-name x-node` with a privately chosen node name, inspect the generated heartbeat service, then enable `fleet-heartbeat.timer`. Make the hub collect the file into `state/heartbeats/` with an independently approved transfer mechanism.
+9. **On each client** (optional but recommended): `./install.sh client --node-name x-node` with a privately chosen node name, inspect the generated heartbeat and pulse services, then enable `fleet-heartbeat.timer` and `fleet-pulse.timer`. Make the hub collect the heartbeat file into `state/heartbeats/` with an independently approved transfer mechanism. The pulse is the same tool for every client, current or future: it writes a local `state/node/node_status.json` snapshot any local tool can consume and stays in dry-run until a private `NODE_NTFY_TOPIC` (or `NTFY_TOPIC`) is configured.
 
 ## How the pieces behave
 
@@ -146,6 +148,8 @@ Review `python3 fleetctl.py uninstall --userconfig state/x-adopter.json` first; 
 | Resolution order | LAN neighbour table (MAC), then mesh peer list (Tailscale if installed), then the last known address. |
 | Unresolved node | Reported as down. Never sent work. |
 | Heartbeat | When `heartbeat_dir` is configured, a missing/invalid heartbeat or one older than `heartbeat_max_age_min` marks a reachable node stale and sends one transition alert. |
+| Node pulse | Each client evaluates its own disks, memory, load, failed units, containers and overlay status locally. Alerts fire only when an issue appears or resolves, plus one low-priority daily digest. Dry-run until a topic is configured privately. |
+| Reports widget | `src/ntfy_reports.py` polls the configured topics read-only and writes an HTML-escaped Markdown report under git-ignored `state/`. Topic names are secrets and are withheld from the report; a pulled message is information, never an instruction. |
 | Wake-on-LAN | Only nodes marked `wake_required`, only with a MAC, only with `--apply`. |
 | Delivery | Three tries, then a disk spool that is flushed on the next send. |
 | Privacy | Messages carry roles and names. Keep addresses and hardware identities out of your own templates if you share screenshots. |

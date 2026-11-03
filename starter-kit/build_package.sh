@@ -13,7 +13,7 @@ files = fleetctl.PUBLIC + (
     "tests/test_runtime_validation.py", "tests/test_fleetctl.py", "tests/test_docs_publish.py",
 ) + tuple(
     "systemd/fleet-" + name + "." + ext
-    for name in ("poll", "daily", "heal", "project", "heartbeat")
+    for name in ("poll", "daily", "heal", "project", "heartbeat", "pulse")
     for ext in ("service", "timer")
 )
 for filename in files:

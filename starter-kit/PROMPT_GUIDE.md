@@ -67,8 +67,9 @@ Environment:
 - Uplinks: <cable / satellite / cellular, failover: yes/no>
 
 The kit is standard-library-only Python with fleetctl.py for adoption and:
-src/ntfy_notify.py,
-src/resolver.py, src/fleet_poll.py, src/heartbeat.py, src/wol_healer.py,
+src/ntfy_notify.py, src/ntfy_reports.py,
+src/resolver.py, src/fleet_poll.py, src/heartbeat.py, src/node_pulse.py,
+src/wol_healer.py,
 src/daily_status.py, src/project_monitor.py, config/*example*, systemd/*.
 
 The project monitor reads local files/evidence only. It does not run ingested

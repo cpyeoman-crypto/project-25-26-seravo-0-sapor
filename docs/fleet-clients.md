@@ -152,6 +152,10 @@ flowchart TB
 - Frequent health, signal-tuning and IoT-guard checks, and daily fleet discovery.
 - Hourly sync of the shared repository.
 
+## One pulse for every client, current and future
+
+The per-client function is deliberately segmented out of the hub: the starter kit ships a single standard-library tool, [node_pulse.py](../starter-kit/src/node_pulse.py), that every client in the tables above — and any client adopted later — runs unchanged. It needs only a bare Python 3 on Linux or Windows; every probe degrades gracefully, so a machine without docker, systemd or the mesh overlay simply reports null for those fields. Each pulse writes a local machine-readable snapshot (`state/node/node_status.json`) that a hub, a human or a future local LLM can consume, and alerts through the [shared notification path](ntfy-alerts.md) only when something changes. Adding a future client is therefore configuration, not code: install the kit, choose a private per-node topic, enable the timer.
+
 ## Known open issues (honest status)
 - Remote shell access to several clients is blocked on their side, and fingerprints are pinned only when supplied out of band.
 - Some inventory records conflict on identity, so dispatch to those clients is disabled until a person confirms them.

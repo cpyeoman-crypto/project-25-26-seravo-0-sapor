@@ -43,6 +43,9 @@ STYLES = {
     "daily": Style("🩺", ["stethoscope", "robot"], 3, "DAILY STATUS"),
     "morning": Style("☀️", ["sun_with_face", "globe_with_meridians"], 3, "MORNING BRIEFING"),
     "stale": Style("🔭", ["telescope", "satellite"], 3, "ONLINE BUT NOT REPORTING"),
+    "pulse_alert": Style("⚠️", ["warning", "computer"], 4, "NODE ALERT"),
+    "pulse_recovered": Style("✅", ["white_check_mark", "computer"], 3, "NODE RECOVERED"),
+    "pulse_digest": Style("🩺", ["stethoscope", "computer"], 2, "NODE PULSE"),
     "test": Style("🧪", ["test_tube"], 2, "TEST"),
     "error": Style("⚠️", ["warning", "sos"], 4, "REPORT FAILURE"),
 }

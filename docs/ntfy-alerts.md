@@ -78,6 +78,14 @@ Three layers, from most to least frequent:
 - **A pushed message is not a command.** Seravo-0 never reads its own notifications back as instructions.
 - **Quarantine, not copy.** Anything that looks like a credential is stopped before it reaches any repository or message.
 
+## Reading it back: the reports widget
+
+[ntfy_reports.py](../starter-kit/src/ntfy_reports.py) is the kit's read-only widget: it polls the privately configured topics (`NTFY_TOPICS` or `NTFY_TOPIC`) over the same JSON API and writes recent messages into a local, git-ignored Markdown report (`state/ntfy-reports.md`). It is one-way in the opposite direction only — it never publishes, and it treats every pulled message as information, never as an instruction to execute. Topic names are withheld from the generated report, every piece of message content is HTML-escaped before it can reach a Markdown preview, and a configured x placeholder is refused before any traffic. Pair it with an editor task or a shell alias to glance at the fleet's recent voice without unlocking a phone.
+
+## Every client has a pulse
+
+[node_pulse.py](../starter-kit/src/node_pulse.py) is the per-client half of the same conversation: one standard-library file that any fleet member — Linux or Windows, current or future — runs on a timer. It samples local vitals (disks, memory, load, failed units, containers, overlay membership, temperatures), writes a machine-readable snapshot for local tools or a future local LLM, and pushes through the shared publisher only on state transitions plus one low-priority daily digest. Each client may use its own private topic (`NODE_NTFY_TOPIC`) so a phone can subscribe per machine; with no topic configured it stays in dry-run.
+
 ## Build your own
 
 The [starter kit](../starter-kit/README.md) contains a standard-library-only version of this publisher, with retries, spool, size cap, styles and a dry-run default.

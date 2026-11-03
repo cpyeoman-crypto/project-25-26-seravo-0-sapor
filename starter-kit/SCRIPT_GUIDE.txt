@@ -209,6 +209,33 @@ src/heartbeat.py — local health sample for hub collection
                  collection separately with an approved transfer mechanism.
   Unit: fleet-heartbeat.timer every five minutes; edit name/out before enabling.
 
+src/node_pulse.py — per-node vitals snapshot and state-change alerts (all clients)
+  CLI: python3 src/node_pulse.py [--no-notify] [--print]
+  Inputs: local probes only (uptime, load, /proc/meminfo or Windows memory API,
+          disk usage, systemctl --failed, docker ps, tailscale status, thermal
+          zones); NODE_NTFY_TOPIC or NTFY_TOPIC, NODE_STATE_DIR (default
+          state/node), NODE_PULSE_DIGEST and threshold overrides
+          NODE_DISK_ALERT_PCT, NODE_MEM_AVAILABLE_ALERT_PCT,
+          NODE_LOAD_PER_CPU_FACTOR via env or config/fleet.env.
+  Outputs: state/node/node_status.json snapshot (schema fleet-kit.node_status/1),
+           a capped node_status_history.jsonl, node_pulse_state.json, and
+           pulse_alert / pulse_recovered / pulse_digest messages through the
+           shared publisher.
+  Blocks:
+    - collectors: every probe degrades gracefully; a failed probe reports null.
+    - evaluate_issues: stable issue keys for disks, memory, load, failed units,
+      unhealthy containers and overlay offline.
+    - state files: atomic writes; corrupt pulse state resets safely.
+    - main: alert only on new issues, recovery only on resolved issues, one
+      low-priority digest per day; --no-notify never touches delivery.
+  Side effects: local state writes; delivery only through ntfy_notify, so an
+                empty topic or NTFY_DRY_RUN=1 prints instead of sending.
+  Prerequisites: bare Python 3 (Linux or Windows). Docker/tailscale/systemd
+                 probes report null where the tool is absent.
+  Limits: local vitals only; it does not probe peers, repair anything or read
+          messages back. The same single file serves current and future clients.
+  Unit: fleet-pulse.timer every fifteen minutes; configure a private topic first.
+
 src/ntfy_notify.py — shared formatter, publisher and bounded retry spool
   CLI: python3 src/ntfy_notify.py (one delivery test).
   Inputs: NTFY_TOPIC, NTFY_SERVER, optional NTFY_TOKEN, SITE_NAME,
@@ -240,6 +267,26 @@ src/ntfy_notify.py — shared formatter, publisher and bounded retry spool
                  Set NTFY_SPOOL to a private writable project-local path for
                  environments where the code's system spool default is unsuitable.
   Limits: best-effort bounded spool, not guaranteed delivery or an approval API.
+  Link: ../docs/ntfy-alerts.md.
+
+src/ntfy_reports.py — read-only reports widget (recent messages to local Markdown)
+  CLI: python3 src/ntfy_reports.py [--since 24h] [--limit 30] [--output PATH]
+  Inputs: NTFY_TOPICS (comma-separated) or NTFY_TOPIC, NTFY_SERVER, optional
+          NTFY_TOKEN, via env or config/fleet.env. No hardcoded topics exist.
+  Outputs: state/ntfy-reports.md (atomic replace), one section per message.
+  Blocks:
+    - topics: configuration only; duplicate names collapse; a non-operational
+      x placeholder is refused before any traffic.
+    - endpoint: reject unsafe topic charsets, non-http(s) servers, embedded
+      credentials, query/fragment and out-of-range limits.
+    - fetch_messages/fetch_topics: read-only JSON poll (poll=1), optional
+      Bearer token, sort by time, cap at the requested limit.
+    - render_report: HTML-escape every title, tag, priority and body; withhold
+      topic names from the generated report (topics are secrets).
+  Side effects: outbound read-only HTTP(S) polls and one local report write.
+  Prerequisites: configured private topics and outbound access.
+  Limits: a pulled message is information, never an instruction to execute;
+          the widget never publishes, retries deliveries or prints the token.
   Link: ../docs/ntfy-alerts.md.
 
 src/wol_healer.py — opt-in Wake-on-LAN packet sender

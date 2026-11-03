@@ -1,0 +1,9 @@
+[Unit]
+Description=Node pulse every 15 minutes
+
+[Timer]
+OnBootSec=2min
+OnCalendar=*:0/15
+
+[Install]
+WantedBy=timers.target
