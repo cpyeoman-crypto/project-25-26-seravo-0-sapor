@@ -8,11 +8,21 @@
       throw new Error("Unexpected public fields");
     }
   }
-  const EVENT_KINDS = {
-    "connect": "🟢", "disconnect": "🔴", "node-online": "🛰️", "node-offline": "📡",
-    "uplink-drop": "🚨", "uplink-restore": "🌐", "new-device": "🆕", "healing": "🔧",
-    "watch": "🕵️", "report": "📋", "alert": "⚠️", "recovered": "✅", "pulse": "🩺", "test": "🧪",
-  };
+  const EVENT_KINDS = ["connect", "disconnect", "node-online", "node-offline", "uplink-drop",
+    "uplink-restore", "new-device", "healing", "watch", "report", "alert", "recovered", "pulse", "test"];
+  const FAKE_IP = /^(?:192\.0\.2|198\.51\.100|203\.0\.113)\./;
+  function maskedText(value, max, singleLine) {
+    if (typeof value !== "string" || value.length > max) return false;
+    if (singleLine && /[\r\n]/.test(value)) return false;
+    if (/farm/i.test(value)) return false;
+    for (const ip of value.match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) || []) {
+      if (!FAKE_IP.test(ip)) return false;
+    }
+    for (const mac of value.match(/\b[0-9A-Fa-f]{2}(?:[:-][0-9A-Fa-f]{2}){5}\b/g) || []) {
+      if (!mac.toLowerCase().startsWith("02:00:00")) return false;
+    }
+    return true;
+  }
   function validate(value) {
     exactKeys(value, ["schema_version", "nodes", "incidents"], ["events"]);
     if (value.schema_version !== 1 || !Array.isArray(value.nodes) ||
@@ -40,8 +50,10 @@
     if ("events" in value) {
       if (!Array.isArray(value.events) || value.events.length > 50) throw new Error("Unsupported public feed");
       for (const row of value.events) {
-        exactKeys(row, ["alias", "kind", "priority", "age_min"], []);
-        if (!/^client-[a-f0-9]{20}$/.test(row.alias) || !(row.kind in EVENT_KINDS) ||
+        exactKeys(row, ["role", "kind", "title", "message", "priority", "age_min"], []);
+        if (!/^[a-z0-9][a-z0-9 -]{0,31}$/.test(row.role) || !EVENT_KINDS.includes(row.kind) ||
+            !maskedText(row.title, 160, true) || row.title.length < 1 ||
+            !maskedText(row.message, 1500, false) ||
             !Number.isInteger(row.priority) || row.priority < 1 || row.priority > 5 ||
             !Number.isInteger(row.age_min) || row.age_min < 0 || row.age_min > 10080) {
           throw new Error("Invalid event");
@@ -91,10 +103,17 @@
       const card = document.createElement("article");
       card.className = `event p${row.priority}`;
       const heading = document.createElement("h3");
-      heading.textContent = `${EVENT_KINDS[row.kind]} ${row.kind.replaceAll("-", " ")}`;
-      const detail = document.createElement("p");
-      detail.textContent = `${row.alias} - priority ${row.priority} - ${age(row.age_min)} (at snapshot time)`;
-      card.append(heading, detail);
+      heading.textContent = row.title;
+      const meta = document.createElement("p");
+      meta.className = "meta";
+      meta.textContent = `${row.role} · priority ${row.priority} · ${age(row.age_min)} at snapshot time`;
+      card.append(heading, meta);
+      if (row.message) {
+        const body = document.createElement("div");
+        body.className = "body";
+        body.textContent = row.message;
+        card.append(body);
+      }
       return card;
     }));
   }
@@ -107,9 +126,8 @@
       const response = await fetch(`status.json?t=${Date.now()}`, {cache:"no-store", signal:controller.signal});
       if (!response.ok) throw new Error("Public snapshot unavailable");
       const value = validate(await response.json());
-      render("nodes", value.nodes);
-      render("incidents", value.incidents);
       renderEvents(value.events || []);
+      render("incidents", value.incidents);
       document.getElementById("state").textContent =
         `Snapshot fetched ${new Date().toLocaleTimeString()}. Source freshness is not verified.`;
     } catch {

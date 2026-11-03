@@ -8,29 +8,33 @@ owner-only HMAC key. Real identifiers never become display aliases directly.
 Only these fields are accepted:
 
 - Schema version `1`.
-- Nodes: a keyed `client-` alias, an enumerated state, optional CPU/RAM/disk
-  percentages between 0 and 100.
 - Incidents: a keyed `incident-` alias, an enumerated state and priority 1-5.
-- Events (optional, at most 50): a keyed `client-` alias, an enumerated public
-  event kind, priority 1-5 and a coarse age in minutes (up to one week). The
-  kind vocabulary is fixed and generic (`connect`, `uplink-drop`, `healing`,
-  `report`, `pulse`, ...): it names the shape of a notification, never its text.
+- Nodes: a keyed `client-` alias, an enumerated state, optional CPU/RAM/disk
+  percentages between 0 and 100 (accepted in the snapshot; not displayed).
+- Events (optional, at most 50): masked replicas of the delivered phone
+  notifications — a fleet-role label (`hub`, `ap`, `assistant`, `printer`,
+  `iot floodlight`, …), an enumerated kind, the masked title and body with the
+  phone's own layout, priority 1-5 and a coarse age in minutes (up to one week).
 
-No raw message, title, MAC/IP address, owner, login, hostname, credential,
-private URL or alias key may be uploaded. Masking raw alert text is not safe.
-Both the publisher and browser reject unknown fields. The browser inserts text,
-not HTML. Incident aliases and client aliases use separate namespaces.
+Masked text must satisfy hard rules enforced by the exporter, the publisher and
+the browser: devices appear only as fleet-role labels; every IPv4 address must
+be an RFC 5737 documentation stand-in (`192.0.2.*`, `198.51.100.*`,
+`203.0.113.*`); every hardware identity must be an `02:00:00` stand-in; the
+private site/topic vocabulary is rejected outright; timestamps, VLAN numbers,
+internal artifact names and any value not meant for other eyes are replaced by
+`X`. A message that still contains any known private term after masking is
+published as a bare `X`. Stand-ins are assigned consistently, so the same
+device keeps the same role label and the same fake identifiers.
+
+No raw MAC/IP address, owner, login, hostname, credential, private URL, topic
+or alias key may be uploaded. Both the publisher and browser reject unknown
+fields and unmasked identifiers. The browser inserts text, not HTML.
 
 The masked feed exists to show how the notification pipeline works, live,
 without disclosing it: it is produced from a read-only poll of the same
-delivered notification stream the phone subscribes to, so what appears here
-tracks what actually reached the phone. The same source always keeps the same
-made-up alias within the feed (stable keyed aliasing); a feed alias matches a
-client-grid alias only when both sides observe the same private identity.
-Kinds come only from the fixed vocabulary — an unrecognised delivered message
-is published as the generic kind `watch`, never as text — and ages are coarse
-relative offsets, not clock timestamps. Event rows reuse the `client-`
-namespace so cross-referencing stays consistent.
+delivered notification stream the phone subscribes to, with the same icons,
+titles and body layout. Clients are not listed separately: role labels in the
+feed are the only public description of the fleet's members.
 
 Node presence describes observations, not successful SSH/RDP or device health.
 Old monitoring observations become `unknown`; disappearance does not prove the

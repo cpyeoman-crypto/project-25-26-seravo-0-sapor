@@ -8,13 +8,15 @@
   <style>
     body { font: 18px system-ui,sans-serif; background:#101827; color:#e8edf5; margin:0; padding:24px; }
     main { max-width:1100px; margin:auto; } h1 { font-size:2rem; }
-    #nodes,#incidents { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    #incidents { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
     #events { display:grid; gap:8px; }
     article { background:#1b293d; padding:18px; border-radius:12px; overflow-wrap:anywhere; }
     .event { padding:12px 18px; } .event h3,.event p { margin:4px 0; }
-    .online,.resolved { border-left:5px solid #62d69a; }
-    .offline,.pending_review { border-left:5px solid #ffc266; }
-    .blocked,.unknown { border-left:5px solid #d18ef8; }
+    .event .meta { color:#bac8dc; font-size:0.85em; }
+    .event .body { white-space:pre-wrap; font-size:0.92em; background:#141f31; border-radius:8px; padding:10px 12px; margin-top:8px; }
+    .resolved { border-left:5px solid #62d69a; }
+    .pending_review { border-left:5px solid #ffc266; }
+    .acknowledged { border-left:5px solid #d18ef8; }
     .p1,.p2 { border-left:5px solid #6ea8e0; } .p3 { border-left:5px solid #62d69a; }
     .p4 { border-left:5px solid #ffc266; } .p5 { border-left:5px solid #ff7a7a; }
     footer,#state { color:#bac8dc; } button { padding:12px; font:inherit; cursor:pointer; }
@@ -27,15 +29,14 @@
   <button id="refresh" type="button">Refresh</button>
   <p id="state" role="status">Loading public snapshot...</p>
   <h2>Notification feed (masked)</h2>
-  <p>How it works: every push the fleet sends to the operator's phone goes through one shared
-    formatter and one delivery path. This feed is a read-only poll of that same delivered
-    stream, with everything identifying removed before publication: stable keyed aliases
-    instead of real names, a fixed public vocabulary of event kinds instead of message text,
-    and coarse ages instead of exact clocks. The same source always appears as the same alias.</p>
+  <p>These are the same notifications the operator's phone receives, shown with the same look
+    and layout. Before publication every identity is masked: devices are relabelled by their
+    fleet role (hub, ap, assistant, printer, iot…), addresses become fixed documentation-range
+    stand-ins, hardware identities become 02:00:00 stand-ins, and anything else not meant for
+    other eyes becomes X. The same device always keeps the same role label.</p>
   <section id="events" aria-label="Masked notification feed"></section>
-  <h2>Clients</h2><section id="nodes" aria-label="Anonymized clients"></section>
   <h2>Incidents (newest in the review queue)</h2><section id="incidents" aria-label="Anonymized incidents"></section>
-  <footer><p>Stable keyed aliases, not real device names. Snapshot only: this page cannot control devices.
+  <footer><p>Role labels and stand-in identifiers, not real device identities. Snapshot only: this page cannot control devices.
     Refreshes every minute. A failed refresh retains the previous view and marks it unverified.</p></footer>
 </main>
 <script src="status.js"></script>

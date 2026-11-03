@@ -9,11 +9,15 @@ for (const patch of [{ip:"192.0.2.1"},{password:"synthetic"},{name:"synthetic-ow
 }
 assert.throws(() => validate({...valid,incidents:[{...valid.incidents[0],message:"raw alert"}]}));
 assert.throws(() => validate({...valid,secret:"synthetic"}));
-const event = {alias:"client-"+"a".repeat(20),kind:"uplink-drop",priority:5,age_min:12};
+const event = {role:"ap 2", kind:"connect", priority:3, age_min:10,
+  title:"fleet · Standard WLAN Connect",
+  message:"## 🟢 CLIENT CONNECT\n\n[WLAN Connect] Name: iot plug | IP: 192.0.2.7 | VLAN: X\n\n- **MAC** `02:00:00:00:00:01`\n\n*fleet · hub · X*"};
 assert.equal(validate({...valid,events:[event]}).events[0], event);
 assert.equal(validate(valid).events, undefined);
-for (const patch of [{message:"raw alert"},{kind:"real-hostname"},{kind:"<img>"},{alias:"incident-"+"b".repeat(20)},
-  {priority:0},{priority:"5"},{age_min:-1},{age_min:10081},{age_min:1.5},{time:"2026-01-01T00:00:00Z"}]) {
+for (const patch of [{title:"farm site · WLAN"},{message:"IP: 10.1.2.3"},{message:"MAC a4:cf:12:34:56:78"},
+  {role:"RealHostName"},{role:""},{kind:"real-hostname"},{title:"line\nbreak"},{title:""},
+  {message:"x".repeat(1501)},{priority:0},{priority:"5"},{age_min:-1},{age_min:10081},{age_min:1.5},
+  {alias:"client-"+"a".repeat(20)}]) {
   assert.throws(() => validate({...valid,events:[{...event,...patch}]}));
 }
 assert.throws(() => validate({...valid,events:Array(51).fill(event)}));
