@@ -8,8 +8,13 @@
       throw new Error("Unexpected public fields");
     }
   }
+  const EVENT_KINDS = {
+    "connect": "🟢", "disconnect": "🔴", "node-online": "🛰️", "node-offline": "📡",
+    "uplink-drop": "🚨", "uplink-restore": "🌐", "new-device": "🆕", "healing": "🔧",
+    "watch": "🕵️", "report": "📋", "alert": "⚠️", "recovered": "✅", "pulse": "🩺", "test": "🧪",
+  };
   function validate(value) {
-    exactKeys(value, ["schema_version", "nodes", "incidents"], []);
+    exactKeys(value, ["schema_version", "nodes", "incidents"], ["events"]);
     if (value.schema_version !== 1 || !Array.isArray(value.nodes) ||
         !Array.isArray(value.incidents) || value.nodes.length > 200 || value.incidents.length > 200) {
       throw new Error("Unsupported public snapshot");
@@ -30,6 +35,17 @@
           !["pending_review", "resolved", "acknowledged"].includes(row.status) ||
           !Number.isInteger(row.priority) || row.priority < 1 || row.priority > 5) {
         throw new Error("Invalid incident");
+      }
+    }
+    if ("events" in value) {
+      if (!Array.isArray(value.events) || value.events.length > 50) throw new Error("Unsupported public feed");
+      for (const row of value.events) {
+        exactKeys(row, ["alias", "kind", "priority", "age_min"], []);
+        if (!/^client-[a-f0-9]{20}$/.test(row.alias) || !(row.kind in EVENT_KINDS) ||
+            !Number.isInteger(row.priority) || row.priority < 1 || row.priority > 5 ||
+            !Number.isInteger(row.age_min) || row.age_min < 0 || row.age_min > 10080) {
+          throw new Error("Invalid event");
+        }
       }
     }
     return value;
@@ -58,6 +74,30 @@
       return card;
     }));
   }
+  function age(minutes) {
+    if (minutes < 60) return `${minutes} min ago`;
+    if (minutes < 1440) return `${Math.floor(minutes / 60)} h ago`;
+    return `${Math.floor(minutes / 1440)} d ago`;
+  }
+  function renderEvents(rows) {
+    const section = document.getElementById("events");
+    if (!rows.length) {
+      const empty = document.createElement("p");
+      empty.textContent = "No masked notifications in the published window.";
+      section.replaceChildren(empty);
+      return;
+    }
+    section.replaceChildren(...rows.map(row => {
+      const card = document.createElement("article");
+      card.className = `event p${row.priority}`;
+      const heading = document.createElement("h3");
+      heading.textContent = `${EVENT_KINDS[row.kind]} ${row.kind.replaceAll("-", " ")}`;
+      const detail = document.createElement("p");
+      detail.textContent = `${row.alias} - priority ${row.priority} - ${age(row.age_min)} (at snapshot time)`;
+      card.append(heading, detail);
+      return card;
+    }));
+  }
   async function refresh() {
     if (busy) return;
     busy = true;
@@ -69,6 +109,7 @@
       const value = validate(await response.json());
       render("nodes", value.nodes);
       render("incidents", value.incidents);
+      renderEvents(value.events || []);
       document.getElementById("state").textContent =
         `Snapshot fetched ${new Date().toLocaleTimeString()}. Source freshness is not verified.`;
     } catch {

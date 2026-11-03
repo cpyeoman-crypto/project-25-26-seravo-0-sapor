@@ -9,10 +9,14 @@
     body { font: 18px system-ui,sans-serif; background:#101827; color:#e8edf5; margin:0; padding:24px; }
     main { max-width:1100px; margin:auto; } h1 { font-size:2rem; }
     #nodes,#incidents { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+    #events { display:grid; gap:8px; }
     article { background:#1b293d; padding:18px; border-radius:12px; overflow-wrap:anywhere; }
+    .event { padding:12px 18px; } .event h3,.event p { margin:4px 0; }
     .online,.resolved { border-left:5px solid #62d69a; }
     .offline,.pending_review { border-left:5px solid #ffc266; }
     .blocked,.unknown { border-left:5px solid #d18ef8; }
+    .p1,.p2 { border-left:5px solid #6ea8e0; } .p3 { border-left:5px solid #62d69a; }
+    .p4 { border-left:5px solid #ffc266; } .p5 { border-left:5px solid #ff7a7a; }
     footer,#state { color:#bac8dc; } button { padding:12px; font:inherit; cursor:pointer; }
   </style>
 </head>
@@ -24,6 +28,13 @@
   <p id="state" role="status">Loading public snapshot...</p>
   <h2>Clients</h2><section id="nodes" aria-label="Anonymized clients"></section>
   <h2>Incidents</h2><section id="incidents" aria-label="Anonymized incidents"></section>
+  <h2>Notification feed (masked)</h2>
+  <p>How it works: every push the fleet sends to the operator's phone goes through one shared
+    formatter and one delivery path. This feed is that same stream with everything identifying
+    removed before publication: stable keyed aliases instead of real names, a fixed public
+    vocabulary of event kinds instead of message text, and coarse ages instead of exact clocks.
+    The same machine always appears as the same alias here and in the client grid.</p>
+  <section id="events" aria-label="Masked notification feed"></section>
   <footer><p>Stable keyed aliases, not real device names. Snapshot only: this page cannot control devices.
     Refreshes every minute. A failed refresh retains the previous view and marks it unverified.</p></footer>
 </main>
