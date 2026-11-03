@@ -11,10 +11,11 @@ assert.throws(() => validate({...valid,incidents:[{...valid.incidents[0],message
 assert.throws(() => validate({...valid,secret:"synthetic"}));
 const event = {role:"ap 2", kind:"connect", priority:3, age_min:10,
   title:"fleet · Standard WLAN Connect",
-  message:"## 🟢 CLIENT CONNECT\n\n[WLAN Connect] Name: iot plug | IP: 192.0.2.7 | VLAN: X\n\n- **MAC** `02:00:00:00:00:01`\n\n*fleet · hub · X*"};
+  message:"## 🟢 CLIENT CONNECT\n\n[WLAN Connect] Name: iot plug | IP: 192.0.2.7 | VLAN: X\n\n- **MAC** `02:00:00:00:00:01`\n- **Mesh** `2001:db8::1`\n\n*fleet · hub · X*"};
 assert.equal(validate({...valid,events:[event]}).events[0], event);
 assert.equal(validate(valid).events, undefined);
 for (const patch of [{title:"farm site · WLAN"},{message:"IP: 10.1.2.3"},{message:"MAC a4:cf:12:34:56:78"},
+  {message:"peer fd7a:115c:a1e0::1 dropped"},{title:"src 2607:f8b0:4004:c07::6a"},
   {role:"RealHostName"},{role:""},{kind:"real-hostname"},{title:"line\nbreak"},{title:""},
   {message:"x".repeat(1501)},{priority:0},{priority:"5"},{age_min:-1},{age_min:10081},{age_min:1.5},
   {alias:"client-"+"a".repeat(20)}]) {

@@ -11,6 +11,7 @@
   const EVENT_KINDS = ["connect", "disconnect", "node-online", "node-offline", "uplink-drop",
     "uplink-restore", "new-device", "healing", "watch", "report", "alert", "recovered", "pulse", "test"];
   const FAKE_IP = /^(?:192\.0\.2|198\.51\.100|203\.0\.113)\./;
+  const IPV6ISH = /\b[0-9A-Fa-f]{1,4}(?::{1,2}[0-9A-Fa-f]{1,4}){3,}\b/g;
   function maskedText(value, max, singleLine) {
     if (typeof value !== "string" || [...value].length > max) return false;
     if (singleLine && /[\r\n]/.test(value)) return false;
@@ -20,6 +21,10 @@
     }
     for (const mac of value.match(/\b[0-9A-Fa-f]{2}(?:[:-][0-9A-Fa-f]{2}){5}\b/g) || []) {
       if (!mac.toLowerCase().startsWith("02:00:00")) return false;
+    }
+    for (const six of value.match(IPV6ISH) || []) {
+      const lowered = six.toLowerCase();
+      if (!lowered.startsWith("02:00:00") && !lowered.startsWith("2001:db8")) return false;
     }
     return true;
   }
