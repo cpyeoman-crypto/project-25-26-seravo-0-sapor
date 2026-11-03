@@ -231,6 +231,7 @@ The real build is described only by what each part does. Anything that could hel
 |---|---|
 | [docs/fleet-clients.md](docs/fleet-clients.md) | Every client: hardware class, role, interactions and status |
 | [docs/ntfy-alerts.md](docs/ntfy-alerts.md) | How the network talks to the phone: message format, priorities, retries |
+| [docs/command-bridge.md](docs/command-bridge.md) | Private text-command approvals, incident acknowledgment, verification status and known limitations; voice remains planned |
 | [docs/polling.md](docs/polling.md) | How every client is polled, found by identity, and how often |
 | [docs/report-examples.md](docs/report-examples.md) | What the field alerts and daily reports look like (redacted) |
 | [docs/illustrations.md](docs/illustrations.md) | Diagrams: big picture, alert flow, self-healing, credential hygiene |

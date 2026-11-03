@@ -228,4 +228,4 @@ Machine makes and models, protocols and pairing keys, control endpoints, geofenc
 
 ## Two-way command bridge (implemented, private)
 
-The one-way phone alert pipeline now has a controlled return path: the operator can reply to a prompt and, after a second `confirm`, approve network or fleet-node actions. It is the concrete form of *a person says yes or no*, and the planned **Voice in / voice out** node above layers onto its handlers without gaining new authority. See [command-bridge.md](command-bridge.md).
+The private deployment has a text-command listener that stages supported network and fleet-node actions for a second confirmation. Individual actions are not all live-verified, target matching has known limitations, and cutting the management link can prevent remote recovery. Incident acknowledgment preserves history and allows zero-pending model reviews to be skipped. Voice input and arbitrary two-way model chat remain planned, not enabled by topic access. See the [verification status and limitations](command-bridge.md).

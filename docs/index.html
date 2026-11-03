@@ -8,6 +8,7 @@
   <style>
     body { font: 18px system-ui,sans-serif; background:#101827; color:#e8edf5; margin:0; padding:24px; }
     main { max-width:1100px; margin:auto; } h1 { font-size:2rem; }
+    a { color:#8ec5ff; }
     #incidents { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
     #events { display:grid; gap:8px; }
     article { background:#1b293d; padding:18px; border-radius:12px; overflow-wrap:anywhere; }
@@ -37,7 +38,11 @@
   <section id="events" aria-label="Masked notification feed"></section>
   <h2>Waiting for a human</h2><section id="incidents" aria-label="Review queue summary"></section>
   <footer><p>Role labels and stand-in identifiers, not real device identities. Snapshot only: this page cannot control devices.
-    Refreshes every minute. A failed refresh retains the previous view and marks it unverified.</p></footer>
+    Refreshes every minute. A failed refresh retains the previous view and marks it unverified.</p>
+    <p>Private text-command approvals and incident acknowledgment are implemented;
+      individual device actions are not all verified. Voice and model chat remain planned.
+      <a href="https://github.com/cpyeoman-crypto/project-25-26-seravo-0-sapor/blob/master/docs/command-bridge.md">Command bridge: verified status and limitations</a>.
+      Operational details and recovery copies stay private.</p></footer>
 </main>
 <script src="status.js?v=4"></script><!-- bump ?v= with every schema change so cached validators never reject fresh data -->
 </body>
