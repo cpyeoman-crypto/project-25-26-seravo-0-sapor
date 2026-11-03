@@ -60,7 +60,7 @@ Three layers, from most to least frequent:
 
 1. **Events** (state changes): a device joined, an uplink dropped, a node woke. Within about two minutes of the change.
 2. **Reports** (scheduled): a morning briefing, a daily status, a hardware and a stack overview, a fleet census, a nightly audit with a short AI analysis, and a link-speed poll every few hours. See [polling.md](polling.md) for the timetable.
-3. **Approvals**: when Seravo-0 wants to do something consequential, the request goes to the approver's phone, and nothing runs until a person says yes.
+3. **Approvals**: when Seravo-0 wants to do something consequential, the request goes to the approver's phone, and nothing runs until a person says yes. The private deployment implements the first stage of this today: flagged notifications arrive as approval requests with one-time-code Approve/Deny buttons that can **only change review status** — a reply is never executed, and device actions still require explicit local approval.
 
 ## Reading the priority on a phone
 
