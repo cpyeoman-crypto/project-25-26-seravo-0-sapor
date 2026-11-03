@@ -196,7 +196,7 @@ The network's voice is [ntfy](https://ntfy.sh): outbound HTTPS pushes from the h
 
 Read it back without unlocking a phone: the [reports widget](starter-kit/src/ntfy_reports.py) polls the same topics read-only and writes the recent messages into a local, git-ignored Markdown report — escaped, topic names withheld, and never treated as instructions. Everything above ships in the [starter kit](starter-kit/README.md): dry-run by default, delivery only after a private topic is configured, bounded retries and a disk spool so a network blip does not drop a report.
 
-**See it live, masked:** the [anonymized status display](https://cpyeoman-crypto.github.io/project-25-26-seravo-0-sapor/) shows the same notification stream as a **masked live feed** — stable keyed aliases instead of real names (the same machine is always the same made-up `client-…` alias, there and in the client grid), a fixed public vocabulary of event kinds instead of message text, and coarse ages instead of exact clocks. Schema and privacy rules: [docs/public-status.md](docs/public-status.md).
+**See it live, masked:** the [anonymized status display](https://cpyeoman-crypto.github.io/project-25-26-seravo-0-sapor/) shows the same notification stream the phone receives as a **masked live feed**: the hub polls the delivered ntfy history read-only, then publishes only stable keyed aliases instead of real names (the same source is always the same made-up `client-…` alias), a fixed public vocabulary of event kinds instead of message text, and coarse ages instead of exact clocks. Schema and privacy rules: [docs/public-status.md](docs/public-status.md).
 
 ## Software and platform
 

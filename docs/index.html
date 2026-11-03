@@ -30,10 +30,10 @@
   <h2>Incidents</h2><section id="incidents" aria-label="Anonymized incidents"></section>
   <h2>Notification feed (masked)</h2>
   <p>How it works: every push the fleet sends to the operator's phone goes through one shared
-    formatter and one delivery path. This feed is that same stream with everything identifying
-    removed before publication: stable keyed aliases instead of real names, a fixed public
-    vocabulary of event kinds instead of message text, and coarse ages instead of exact clocks.
-    The same machine always appears as the same alias here and in the client grid.</p>
+    formatter and one delivery path. This feed is a read-only poll of that same delivered
+    stream, with everything identifying removed before publication: stable keyed aliases
+    instead of real names, a fixed public vocabulary of event kinds instead of message text,
+    and coarse ages instead of exact clocks. The same source always appears as the same alias.</p>
   <section id="events" aria-label="Masked notification feed"></section>
   <footer><p>Stable keyed aliases, not real device names. Snapshot only: this page cannot control devices.
     Refreshes every minute. A failed refresh retains the previous view and marks it unverified.</p></footer>

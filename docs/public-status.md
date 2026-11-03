@@ -22,10 +22,15 @@ Both the publisher and browser reject unknown fields. The browser inserts text,
 not HTML. Incident aliases and client aliases use separate namespaces.
 
 The masked feed exists to show how the notification pipeline works, live,
-without disclosing it: the same machine keeps the same made-up alias across the
-client grid and the feed (stable keyed aliasing), kinds come only from the fixed
-vocabulary, and ages are coarse relative offsets, not clock timestamps. Event
-rows reuse the `client-` namespace so cross-referencing stays consistent.
+without disclosing it: it is produced from a read-only poll of the same
+delivered notification stream the phone subscribes to, so what appears here
+tracks what actually reached the phone. The same source always keeps the same
+made-up alias within the feed (stable keyed aliasing); a feed alias matches a
+client-grid alias only when both sides observe the same private identity.
+Kinds come only from the fixed vocabulary — an unrecognised delivered message
+is published as the generic kind `watch`, never as text — and ages are coarse
+relative offsets, not clock timestamps. Event rows reuse the `client-`
+namespace so cross-referencing stays consistent.
 
 Node presence describes observations, not successful SSH/RDP or device health.
 Old monitoring observations become `unknown`; disappearance does not prove the
