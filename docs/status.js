@@ -12,7 +12,7 @@
     "uplink-restore", "new-device", "healing", "watch", "report", "alert", "recovered", "pulse", "test"];
   const FAKE_IP = /^(?:192\.0\.2|198\.51\.100|203\.0\.113)\./;
   function maskedText(value, max, singleLine) {
-    if (typeof value !== "string" || value.length > max) return false;
+    if (typeof value !== "string" || [...value].length > max) return false;
     if (singleLine && /[\r\n]/.test(value)) return false;
     if (/farm/i.test(value)) return false;
     for (const ip of value.match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) || []) {
