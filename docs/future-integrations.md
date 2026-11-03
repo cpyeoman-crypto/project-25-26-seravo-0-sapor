@@ -225,3 +225,7 @@ Machine makes and models, protocols and pairing keys, control endpoints, geofenc
 | Approval | The approver phones |
 | Safe physical control | Dry-run default, approval each time, quarantine of new devices, and logs in the archive |
 | Power-aware jobs | Burst compute and Wake-on-LAN |
+
+## Two-way command bridge (implemented, private)
+
+The one-way phone alert pipeline now has a controlled return path: the operator can reply to a prompt and, after a second `confirm`, approve network or fleet-node actions. It is the concrete form of *a person says yes or no*, and the planned **Voice in / voice out** node above layers onto its handlers without gaining new authority. See [command-bridge.md](command-bridge.md).
