@@ -3,15 +3,15 @@
 <text x="24" y="30" font-family="system-ui,sans-serif" font-size="17" font-weight="bold" fill="#e8edf5">Latest masked notifications · live</text>
 <rect x="18" y="46" width="744" height="64" rx="10" fill="#1b293d"/>
 <rect x="18" y="46" width="5" height="64" rx="2.5" fill="#62d69a"/>
-<text x="36" y="72" font-family="system-ui,sans-serif" font-size="15" font-weight="bold" fill="#e8edf5">📡 fleet · Tailscale Disconnect</text>
-<text x="36" y="94" font-family="system-ui,sans-serif" font-size="12.5" fill="#bac8dc">fleet · priority 3 · 25 min ago</text>
+<text x="36" y="72" font-family="system-ui,sans-serif" font-size="15" font-weight="bold" fill="#e8edf5">🕵️ fleet · SYN spike from hubz</text>
+<text x="36" y="94" font-family="system-ui,sans-serif" font-size="12.5" fill="#bac8dc">fleet · priority 3 · 0 min ago</text>
 <rect x="18" y="120" width="744" height="64" rx="10" fill="#1b293d"/>
 <rect x="18" y="120" width="5" height="64" rx="2.5" fill="#62d69a"/>
-<text x="36" y="146" font-family="system-ui,sans-serif" font-size="15" font-weight="bold" fill="#e8edf5">🕵️ fleet · SYN spike from mobile</text>
+<text x="36" y="146" font-family="system-ui,sans-serif" font-size="15" font-weight="bold" fill="#e8edf5">📡 fleet · Tailscale Disconnect</text>
 <text x="36" y="168" font-family="system-ui,sans-serif" font-size="12.5" fill="#bac8dc">fleet · priority 3 · 25 min ago</text>
 <rect x="18" y="194" width="744" height="64" rx="10" fill="#1b293d"/>
 <rect x="18" y="194" width="5" height="64" rx="2.5" fill="#62d69a"/>
-<text x="36" y="220" font-family="system-ui,sans-serif" font-size="15" font-weight="bold" fill="#e8edf5">🛰️ fleet · Tailscale Connect</text>
-<text x="36" y="242" font-family="system-ui,sans-serif" font-size="12.5" fill="#bac8dc">fleet · priority 3 · 25 min ago</text>
+<text x="36" y="220" font-family="system-ui,sans-serif" font-size="15" font-weight="bold" fill="#e8edf5">🕵️ fleet · SYN spike from mobile</text>
+<text x="36" y="242" font-family="system-ui,sans-serif" font-size="12.5" fill="#bac8dc">fleet · priority 3 · 30 min ago</text>
 <text x="24" y="286" font-family="system-ui,sans-serif" font-size="11" fill="#7f8ea6">identities masked · role labels and stand-ins only · refreshed automatically</text>
 </svg>
